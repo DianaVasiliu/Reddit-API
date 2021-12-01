@@ -8,6 +8,13 @@ const {
     updateUser,
     deleteUser,
 } = require('./controllers/users')
+const {
+    getAllPosts,
+    getPostById,
+    createPost,
+    updatePost,
+    deletePost,
+} = require('./controllers/posts')
 
 const port = 3001
 
@@ -22,6 +29,13 @@ app.get('/users/:id', getUserById)
 app.post('/users/', createUser)
 app.put('/users/:id', updateUser)
 app.delete('/users/:id', deleteUser)
+
+app.post('/users/:id/posts', createPost)
+
+app.get('/posts', getAllPosts)
+app.get('/posts/:id', getPostById)
+app.put('/posts/:id', updatePost)
+app.delete('/posts/:id', deletePost)
 
 app.listen(port, () => {
     console.log('Server started on port', port)
