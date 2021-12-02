@@ -90,10 +90,9 @@ const deleteUser = async (req, res) => {
     }
 }
 
-const subscribeToCommunity = async (req, res) => {
+const updateSubscription = async (req, res) => {
     const userId = req.params.userId
     const communityId = req.params.communityId
-    let error = 'Something went wrong'
 
     try {
         const user = await db.User.findByPk(userId)
@@ -103,7 +102,13 @@ const subscribeToCommunity = async (req, res) => {
             throw new Error('User or community not found')
         }
 
-        await user.setCommunities(community)
+        const userIsSubscribed = await user.hasCommunity(community)
+
+        if (userIsSubscribed) {
+            await user.removeCommunity(community)
+        } else {
+            await user.setCommunities(community)
+        }
 
         const updatedUser = await db.User.findByPk(userId)
         const tags = await updatedUser.getCommunities()
@@ -117,7 +122,7 @@ const subscribeToCommunity = async (req, res) => {
     } catch (e) {
         console.error('Error:', e.message)
         res.send({
-            error,
+            error: 'Something went wrong',
         })
     }
 }
@@ -128,5 +133,5 @@ module.exports = {
     createUser,
     updateUser,
     deleteUser,
-    subscribeToCommunity,
+    updateSubscription,
 }
