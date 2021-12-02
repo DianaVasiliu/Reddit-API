@@ -11,7 +11,6 @@ module.exports = {
         for (let i = 0; i < 200; i++) {
             const userId = Math.floor(Math.random() * (allUsers.length - 1))
             posts.push({
-                // id,
                 userId,
                 title: faker.lorem.sentence(),
                 body: faker.lorem.paragraphs(),
@@ -24,11 +23,6 @@ module.exports = {
     },
 
     down: async (queryInterface, Sequelize) => {
-        /**
-         * Add commands to revert seed here.
-         *
-         * Example:
-         * await queryInterface.bulkDelete('People', null, {});
-         */
+        await queryInterface.bulkDelete('Posts', null, {})
     },
 }

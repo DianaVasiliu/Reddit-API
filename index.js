@@ -7,6 +7,7 @@ const {
     createUser,
     updateUser,
     deleteUser,
+    subscribeToCommunity,
 } = require('./controllers/users')
 const {
     getAllPosts,
@@ -36,6 +37,8 @@ app.get('/posts', getAllPosts)
 app.get('/posts/:id', getPostById)
 app.put('/posts/:id', updatePost)
 app.delete('/posts/:id', deletePost)
+
+app.post('/users/:userId/communities/:communityId', subscribeToCommunity)
 
 app.listen(port, () => {
     console.log('Server started on port', port)

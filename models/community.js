@@ -1,25 +1,23 @@
 'use strict'
 const { Model } = require('sequelize')
-
 module.exports = (sequelize, DataTypes) => {
-    class User extends Model {
+    class Community extends Model {
         static associate(models) {
             // define association here
-            models.User.hasMany(models.Post)
-            models.User.belongsToMany(models.Community, {
+            models.Community.belongsToMany(models.User, {
                 through: 'UserCommunity',
             })
         }
     }
-    User.init(
+    Community.init(
         {
-            email: DataTypes.STRING,
-            username: DataTypes.STRING,
+            name: DataTypes.STRING,
+            description: DataTypes.STRING,
         },
         {
             sequelize,
-            modelName: 'User',
+            modelName: 'Community',
         }
     )
-    return User
+    return Community
 }
