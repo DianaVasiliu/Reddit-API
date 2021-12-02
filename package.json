@@ -22,7 +22,7 @@
         "express": "^4.17.1",
         "faker": "^5.5.3",
         "sequelize": "^6.12.0-alpha.1",
-        "sqlite3": "^5.0.2"
+        "sqlite3": "^4.2.0"
     },
     "devDependencies": {
         "nodemon": "^2.0.15"
