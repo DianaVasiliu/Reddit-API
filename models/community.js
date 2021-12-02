@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
             models.Community.belongsToMany(models.User, {
                 through: 'UserCommunity',
             })
+            models.Community.hasMany(models.Post)
         }
     }
     Community.init(

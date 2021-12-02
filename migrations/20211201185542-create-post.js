@@ -10,9 +10,20 @@ module.exports = {
             },
             userId: {
                 type: Sequelize.INTEGER,
+                allowNull: false,
                 references: {
                     model: {
                         tableName: 'Users',
+                    },
+                    key: 'id',
+                },
+            },
+            communityId: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
+                references: {
+                    model: {
+                        tableName: 'Communities',
                     },
                     key: 'id',
                 },

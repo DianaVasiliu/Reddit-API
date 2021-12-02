@@ -7,6 +7,9 @@ module.exports = (sequelize, DataTypes) => {
             models.Post.belongsTo(models.User, {
                 foreignKey: 'userId',
             })
+            models.Post.belongsTo(models.Community, {
+                foreignKey: 'communityId',
+            })
         }
     }
     Post.init(

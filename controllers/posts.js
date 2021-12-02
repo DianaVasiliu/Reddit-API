@@ -40,7 +40,6 @@ const getPostById = async (req, res) => {
 }
 
 const createPost = async (req, res) => {
-    const { title, body } = req.body
     const userId = req.params.id
 
     try {
@@ -50,10 +49,7 @@ const createPost = async (req, res) => {
             throw new Error('User not found')
         }
 
-        const newPost = {
-            title,
-            body,
-        }
+        const newPost = req.body
 
         const createdPost = await user.createPost(newPost)
 
