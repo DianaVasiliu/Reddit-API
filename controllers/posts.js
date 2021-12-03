@@ -20,10 +20,12 @@ const getPostById = async (req, res) => {
     try {
         const selectedPost = await db.Post.findByPk(postID)
         const author = await selectedPost.getUser()
+        const community = await selectedPost.getCommunity()
 
         const response = {
             ...selectedPost.dataValues,
             author,
+            community,
         }
 
         if (selectedPost === null) {
@@ -63,7 +65,10 @@ const createPost = async (req, res) => {
 }
 
 const updatePost = async (req, res) => {
-    const body = req.body
+    const body = {
+        ...req.body,
+        updatedAt: new Date(),
+    }
     const postId = req.params.id
 
     try {

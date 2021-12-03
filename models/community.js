@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
             // define association here
             models.Community.belongsToMany(models.User, {
                 through: 'UserCommunity',
+                timestamps: false,
             })
             models.Community.hasMany(models.Post)
         }

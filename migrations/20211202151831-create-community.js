@@ -42,6 +42,7 @@ module.exports = {
                         },
                         key: 'id',
                     },
+                    onDelete: 'CASCADE',
                 },
                 communityId: {
                     type: Sequelize.INTEGER,
@@ -52,6 +53,7 @@ module.exports = {
                         },
                         key: 'id',
                     },
+                    onDelete: 'CASCADE',
                 },
                 isCreator: {
                     type: Sequelize.TINYINT,
@@ -61,14 +63,6 @@ module.exports = {
                     type: Sequelize.TINYINT,
                     defaultValue: 0,
                 },
-                createdAt: {
-                    allowNull: false,
-                    type: Sequelize.DATE,
-                },
-                updatedAt: {
-                    allowNull: false,
-                    type: Sequelize.DATE,
-                },
             },
             {
                 uniqueKeys: {
@@ -76,6 +70,7 @@ module.exports = {
                         fields: ['userId', 'communityId'],
                     },
                 },
+                timestamps: false,
             }
         )
     },

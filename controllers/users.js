@@ -52,7 +52,10 @@ const createUser = async (req, res) => {
 }
 
 const updateUser = async (req, res) => {
-    const body = req.body
+    const body = {
+        ...req.body,
+        updatedAt: new Date(),
+    }
     const userId = req.params.id
 
     try {
@@ -126,6 +129,9 @@ const updateSubscription = async (req, res) => {
         })
     }
 }
+
+// TODO:
+const toggleAdminOrModerator = (option, req, res) => {}
 
 module.exports = {
     getAllUsers,

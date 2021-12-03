@@ -21,6 +21,9 @@ const {
     getCommunityPost,
     getAllCommunityMembers,
     getCommunityAdminsOrModerators,
+    createCommunity,
+    updateCommunity,
+    deleteCommunity,
 } = require('./controllers/communities')
 
 const port = 3001
@@ -56,6 +59,9 @@ app.get('/communities/:communityId/admins', (req, res) => {
 app.get('/communities/:communityId/moderators', (req, res) => {
     getCommunityAdminsOrModerators('moderators', req, res)
 })
+app.post('/communities/create/:userId', createCommunity)
+app.put('/communities/:id/update', updateCommunity)
+app.delete('/communities/:id/delete', deleteCommunity)
 
 app.listen(port, () => {
     console.log('Server started on port', port)

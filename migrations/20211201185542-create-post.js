@@ -10,13 +10,13 @@ module.exports = {
             },
             userId: {
                 type: Sequelize.INTEGER,
-                allowNull: false,
                 references: {
                     model: {
                         tableName: 'Users',
                     },
                     key: 'id',
                 },
+                onDelete: 'SET NULL',
             },
             communityId: {
                 type: Sequelize.INTEGER,
@@ -27,6 +27,7 @@ module.exports = {
                     },
                     key: 'id',
                 },
+                onDelete: 'CASCADE',
             },
             title: {
                 type: Sequelize.STRING,

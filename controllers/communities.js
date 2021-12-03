@@ -103,12 +103,78 @@ const getCommunityAdminsOrModerators = async (option, req, res) => {
     }
 }
 
-// TODO
-const createCommunity = async (req, res) => {}
+const createCommunity = async (req, res) => {
+    const body = req.body
+    const userId = req.params.userId
+
+    try {
+        const user = await db.User.findByPk(userId)
+
+        if (!user) {
+            throw new Error('User not found')
+        }
+
+        const createdCommunity = await db.Community.create(body)
+        // TODO: make the user a creator in the UserCommunity table
+        await createdCommunity.addUser(user)
+
+        res.send(createdCommunity)
+    } catch (e) {
+        console.error('Error:', e.message)
+        res.send({
+            error: 'Something went wrong',
+        })
+    }
+}
+
+const updateCommunity = async (req, res) => {
+    const body = {
+        ...req.body,
+        updatedAt: new Date(),
+    }
+    const communityId = req.params.id
+
+    try {
+        await db.Community.update(body, {
+            where: {
+                id: communityId,
+            },
+        })
+
+        const updatedCommunity = await db.Community.findByPk(communityId)
+        res.status(202).send(updatedCommunity)
+    } catch (e) {
+        console.error(e)
+        res.send({
+            error: 'Something went wrong',
+        })
+    }
+}
+
+const deleteCommunity = async (req, res) => {
+    const communityId = req.params.id
+
+    try {
+        await db.Community.destroy({
+            where: {
+                id: communityId,
+            },
+        })
+        res.status(202).send('Community deleted successfully')
+    } catch (e) {
+        console.error(e)
+        res.send({
+            error: 'Something went wrong',
+        })
+    }
+}
 
 module.exports = {
     getAllCommunityPosts,
     getCommunityPost,
     getAllCommunityMembers,
     getCommunityAdminsOrModerators,
+    createCommunity,
+    updateCommunity,
+    deleteCommunity,
 }

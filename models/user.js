@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
             models.User.hasMany(models.Post)
             models.User.belongsToMany(models.Community, {
                 through: 'UserCommunity',
+                timestamps: false,
             })
         }
     }
