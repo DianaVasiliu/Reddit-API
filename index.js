@@ -25,6 +25,14 @@ const {
     updateCommunity,
     deleteCommunity,
 } = require('./controllers/communities')
+const {
+    getAllMessages,
+    getMessageById,
+    createMessage,
+    deleteMessage,
+    getUserMessages,
+    getUserChat,
+} = require('./controllers/messages')
 
 const port = 3001
 
@@ -62,6 +70,13 @@ app.get('/communities/:communityId/moderators', (req, res) => {
 app.post('/communities/create/:userId', createCommunity)
 app.put('/communities/:id/update', updateCommunity)
 app.delete('/communities/:id/delete', deleteCommunity)
+
+app.get('/messages', getAllMessages)
+app.get('/messages/:id', getMessageById)
+app.post('/users/:fromId/messages/:toId', createMessage)
+app.put('/messages/:id', deleteMessage)
+app.get('/users/:userId/messages', getUserMessages)
+app.get('/users/:fromId/messages/:toId', getUserChat)
 
 app.listen(port, () => {
     console.log('Server started on port', port)

@@ -23,7 +23,7 @@ const getPostById = async (req, res) => {
         const community = await selectedPost.getCommunity()
 
         const response = {
-            ...selectedPost.dataValues,
+            ...selectedPost.toJSON(),
             author,
             community,
         }

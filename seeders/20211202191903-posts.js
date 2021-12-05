@@ -10,7 +10,7 @@ module.exports = {
 
         const posts = []
         for (let i = 0; i < 200; i++) {
-            const userId = Math.floor(Math.random() * (allUsers.length - 1))
+            const userId = Math.floor(Math.random() * (allUsers.length - 1)) + 1
             const communityId =
                 Math.floor(Math.random() * (allCommunities.length - 1)) + 1
 

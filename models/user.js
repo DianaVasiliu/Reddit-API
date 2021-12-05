@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
                 through: 'UserCommunity',
                 timestamps: false,
             })
+            models.User.hasMany(models.Message)
         }
     }
     User.init(
