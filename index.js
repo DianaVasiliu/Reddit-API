@@ -17,9 +17,16 @@ const {
     deletePost,
 } = require('./controllers/posts')
 
+const { graphqlHTTP } = require('express-graphql');
+const schema = require('./graphql');
+
 const port = 3001
 
 app.use(bodyParser.json())
+
+app.use('/graphql', graphqlHTTP({
+    schema,
+}));
 
 app.get('/', (req, res) => {
     res.send('Home page')
