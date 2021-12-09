@@ -12,6 +12,7 @@ module.exports = {
                 id: i,
                 email: faker.internet.email(),
                 username: faker.internet.userName(),
+                password: faker.internet.password(),
                 createdAt: new Date(),
                 updatedAt: new Date(),
             })

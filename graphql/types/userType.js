@@ -14,7 +14,10 @@ const {
         type: GraphQLString,
       },
       username: { 
-        type: GraphQLString 
+        type: GraphQLString,
+      },
+      password: { 
+        type: GraphQLString,
       },
     }
   });

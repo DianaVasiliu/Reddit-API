@@ -1,4 +1,5 @@
 const express = require('express')
+const { port } = require('./config/express');
 const bodyParser = require('body-parser')
 const app = express()
 const {
@@ -19,12 +20,11 @@ const {
 
 const { graphqlHTTP } = require('express-graphql');
 const schema = require('./graphql');
-
-const port = 3001
+const authorizationMiddleware = require('./middlewares/authorization');
 
 app.use(bodyParser.json())
 
-app.use('/graphql', graphqlHTTP({
+app.use('/graphql', authorizationMiddleware, graphqlHTTP({
     schema,
 }));
 

@@ -25,12 +25,13 @@ const getUserById = async (id) => {
 }
 
 const createUser = async (args) => {
-    const { email, username } = args
+    const { email, username, password } = args
 
     try {
         const newUser = await db.User.create({
             email,
             username,
+            password,
         })
 
         return newUser
@@ -44,19 +45,20 @@ const updateUser = async (args, context) => {
     const { user } = context;
   
   if(!user) {
+    console.log("Tried to update current user without being logged in. (without having a token in Authorization header)\n")
     return null;
   }
 
   const { id } = user;
   
-  const { email, firstName, lastName } = args;
+  const { email, username, password } = args;
 
   try {
     await db.User.update({
       email,
-      firstName,
-      lastName,
-    }, { where: { id } });
+      username,
+      password,
+    }, { where:  id=id  });
 
     return await db.User.findByPk(id);
 
