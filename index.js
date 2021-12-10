@@ -38,6 +38,8 @@ const {
     getAllPostComments,
     postNewComment,
     getCommentThread,
+    updateComment,
+    deleteComment,
 } = require('./controllers/comments')
 
 const port = 3001
@@ -97,6 +99,8 @@ app.get('/posts/:postId/comments', getAllPostComments)
 // TODO: update posting a comment (get userId in auth token)
 app.post('/posts/:postId/comments/post', postNewComment)
 app.get('/posts/:postId/comments/:commentId', getCommentThread)
+app.put('/posts/:postId/comments/:commentId', updateComment)
+app.delete('/posts/:postId/comments/:commentId', deleteComment)
 
 app.listen(port, () => {
     console.log('Server started on port', port)

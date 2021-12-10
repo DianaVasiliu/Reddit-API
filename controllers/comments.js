@@ -117,8 +117,77 @@ const getCommentThread = async (req, res) => {
     }
 }
 
+const updateComment = async (req, res) => {
+    const postId = parseInt(req.params.postId)
+    const commentId = parseInt(req.params.commentId)
+    const reqBody = req.body
+    const body = {
+        body: reqBody.body,
+        updatedAt: new Date(),
+    }
+
+    console.log('body', body)
+
+    try {
+        const comment = await db.Comment.findByPk(commentId)
+
+        if (!comment) {
+            throw new Error('Comment not found 1')
+        }
+
+        if (comment.toJSON().postId !== postId) {
+            throw new Error('Comment not found')
+        }
+
+        await db.Comment.update(body, {
+            where: {
+                id: commentId,
+            },
+        })
+
+        res.status(202).send('Comment updated successfully')
+    } catch (e) {
+        console.error('Error:', e.message)
+        res.send({
+            error: 'Something went wrong',
+        })
+    }
+}
+
+const deleteComment = async (req, res) => {
+    const postId = parseInt(req.params.postId)
+    const commentId = parseInt(req.params.commentId)
+
+    try {
+        const comment = await db.Comment.findByPk(commentId)
+
+        if (!comment) {
+            throw new Error('Comment not found')
+        }
+
+        if (comment.toJSON().postId !== postId) {
+            throw new Error('Comment not found')
+        }
+
+        await db.Comment.destroy({
+            where: {
+                id: commentId,
+            },
+        })
+
+        res.status(202).send('Comment deleted successfully')
+    } catch (e) {
+        console.error('Error:', e.message)
+        res.send({
+            error: 'Something went wrong',
+        })
+    }
+}
+
 module.exports = {
     getAllPostComments,
     postNewComment,
     getCommentThread,
+    updateComment,
+    deleteComment,
 }
