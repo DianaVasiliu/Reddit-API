@@ -1,7 +1,7 @@
 'use strict'
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        await queryInterface.createTable('Posts', {
+        await queryInterface.createTable('Comments', {
             id: {
                 allowNull: false,
                 autoIncrement: true,
@@ -18,19 +18,26 @@ module.exports = {
                 },
                 onDelete: 'SET NULL',
             },
-            communityId: {
+            postId: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
                 references: {
                     model: {
-                        tableName: 'Communities',
+                        tableName: 'Posts',
                     },
                     key: 'id',
                 },
                 onDelete: 'CASCADE',
             },
-            title: {
-                type: Sequelize.STRING,
+            replyToCommentId: {
+                type: Sequelize.INTEGER,
+                references: {
+                    model: {
+                        tableName: 'Comments',
+                    },
+                    key: 'id',
+                },
+                onDelete: 'SET NULL',
             },
             body: {
                 type: Sequelize.STRING,
@@ -46,6 +53,6 @@ module.exports = {
         })
     },
     down: async (queryInterface, Sequelize) => {
-        await queryInterface.dropTable('Posts')
+        await queryInterface.dropTable('Comments')
     },
 }

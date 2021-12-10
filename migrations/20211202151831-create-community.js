@@ -14,6 +14,16 @@ module.exports = {
             description: {
                 type: Sequelize.STRING,
             },
+            userId: {
+                type: Sequelize.INTEGER,
+                references: {
+                    model: {
+                        tableName: 'Users',
+                    },
+                    key: 'id',
+                },
+                onDelete: 'SET NULL',
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
@@ -42,6 +52,7 @@ module.exports = {
                         },
                         key: 'id',
                     },
+                    onDelete: 'CASCADE',
                 },
                 communityId: {
                     type: Sequelize.INTEGER,
@@ -52,22 +63,15 @@ module.exports = {
                         },
                         key: 'id',
                     },
+                    onDelete: 'CASCADE',
                 },
-                isCreator: {
+                isAdmin: {
                     type: Sequelize.TINYINT,
                     defaultValue: 0,
                 },
                 isModerator: {
                     type: Sequelize.TINYINT,
                     defaultValue: 0,
-                },
-                createdAt: {
-                    allowNull: false,
-                    type: Sequelize.DATE,
-                },
-                updatedAt: {
-                    allowNull: false,
-                    type: Sequelize.DATE,
                 },
             },
             {
@@ -76,6 +80,7 @@ module.exports = {
                         fields: ['userId', 'communityId'],
                     },
                 },
+                timestamps: false,
             }
         )
     },

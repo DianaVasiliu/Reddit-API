@@ -5,7 +5,15 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             // define association here
             models.Community.belongsToMany(models.User, {
-                through: 'UserCommunity',
+                through: models.UserCommunity,
+                timestamps: false,
+            })
+            models.Community.belongsTo(models.User, {
+                foreignKey: 'userId',
+            })
+            models.Community.hasMany(models.UserCommunity)
+            models.Community.hasMany(models.Post, {
+                foreignKey: 'communityId',
             })
         }
     }
@@ -13,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         {
             name: DataTypes.STRING,
             description: DataTypes.STRING,
+            userId: DataTypes.INTEGER,
         },
         {
             sequelize,
