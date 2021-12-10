@@ -15,7 +15,7 @@ const getAllUsers = async (req, res) => {
 }
 
 const getUserById = async (req, res) => {
-    const userID = req.params.id
+    const userID = parseInt(req.params.id)
 
     try {
         const selectedUser = await db.User.findByPk(userID)
@@ -56,16 +56,22 @@ const updateUser = async (req, res) => {
         ...req.body,
         updatedAt: new Date(),
     }
-    const userId = req.params.id
+    const userId = parseInt(req.params.id)
 
     try {
+        const user = await db.User.findByPk(userId)
+
+        if (!user) {
+            throw new Error('User not found')
+        }
+
         await db.User.update(body, {
             where: {
                 id: userId,
             },
         })
 
-        const updatedUser = await db.User.findByPk(req.params.id)
+        const updatedUser = await db.User.findByPk(userId)
         res.status(202).send(updatedUser)
     } catch (e) {
         console.error(e)
@@ -76,14 +82,21 @@ const updateUser = async (req, res) => {
 }
 
 const deleteUser = async (req, res) => {
-    const userID = req.params.id
+    const userId = parseInt(req.params.id)
 
     try {
+        const user = await db.User.findByPk(userId)
+
+        if (!user) {
+            throw new Error('User not found')
+        }
+
         await db.User.destroy({
             where: {
-                id: userID,
+                id: userId,
             },
         })
+
         res.status(202).send('User deleted successfully')
     } catch (e) {
         console.error(e)
@@ -94,8 +107,8 @@ const deleteUser = async (req, res) => {
 }
 
 const updateSubscription = async (req, res) => {
-    const userId = req.params.userId
-    const communityId = req.params.communityId
+    const userId = parseInt(req.params.userId)
+    const communityId = parseInt(req.params.communityId)
 
     try {
         const user = await db.User.findByPk(userId)
@@ -131,8 +144,8 @@ const updateSubscription = async (req, res) => {
 }
 
 const toggleAdminOrModerator = async (option, req, res) => {
-    const communityId = req.params.communityId
-    const userId = req.params.userId
+    const communityId = parseInt(req.params.communityId)
+    const userId = parseInt(req.params.userId)
     var criteria
 
     try {

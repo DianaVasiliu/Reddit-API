@@ -15,10 +15,10 @@ const getAllPosts = async (req, res) => {
 }
 
 const getPostById = async (req, res) => {
-    const postID = req.params.id
+    const postId = parseInt(req.params.id)
 
     try {
-        const selectedPost = await db.Post.findByPk(postID)
+        const selectedPost = await db.Post.findByPk(postId)
         const author = await selectedPost.getUser()
         const community = await selectedPost.getCommunity()
 
@@ -42,7 +42,7 @@ const getPostById = async (req, res) => {
 }
 
 const createPost = async (req, res) => {
-    const userId = req.params.id
+    const userId = parseInt(req.params.id)
 
     try {
         const user = await db.User.findByPk(userId)
@@ -69,9 +69,15 @@ const updatePost = async (req, res) => {
         ...req.body,
         updatedAt: new Date(),
     }
-    const postId = req.params.id
+    const postId = parseInt(req.params.id)
 
     try {
+        const post = await db.Post.findByPk(postId)
+
+        if (!post) {
+            throw new Error('Post not found')
+        }
+
         await db.Post.update(body, {
             where: {
                 id: postId,
@@ -89,14 +95,21 @@ const updatePost = async (req, res) => {
 }
 
 const deletePost = async (req, res) => {
-    const postId = req.params.id
+    const postId = parseInt(req.params.id)
 
     try {
+        const post = await db.Post.findByPk(postId)
+
+        if (!post) {
+            throw new Error('Post not found')
+        }
+
         await db.Post.destroy({
             where: {
                 id: postId,
             },
         })
+
         res.status(202).send('Post deleted successfully')
     } catch (e) {
         console.error(e)

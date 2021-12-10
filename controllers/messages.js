@@ -15,7 +15,7 @@ const getAllMessages = async (req, res) => {
 }
 
 const getMessageById = async (req, res) => {
-    const messageId = req.params.id
+    const messageId = parseInt(req.params.id)
 
     try {
         const selectedMessage = await db.Message.findByPk(messageId)
@@ -77,7 +77,7 @@ const createMessage = async (req, res) => {
 }
 
 const deleteMessage = async (req, res) => {
-    const messageId = req.params.id
+    const messageId = parseInt(req.params.id)
     const body = {
         text: '<< This message was deleted >>',
     }
@@ -105,7 +105,7 @@ const deleteMessage = async (req, res) => {
 }
 
 const getUserMessages = async (req, res) => {
-    const userId = req.params.userId
+    const userId = parseInt(req.params.userId)
 
     try {
         const user = await db.User.findByPk(userId)

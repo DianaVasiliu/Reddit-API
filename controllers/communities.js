@@ -1,7 +1,7 @@
 const db = require('../models')
 
 const getAllCommunityPosts = async (req, res) => {
-    const communityId = req.params.communityId
+    const communityId = parseInt(req.params.communityId)
 
     try {
         const community = await db.Community.findByPk(communityId)
@@ -26,8 +26,8 @@ const getAllCommunityPosts = async (req, res) => {
 }
 
 const getCommunityPost = async (req, res) => {
-    const communityId = req.params.communityId
-    const postId = req.params.postId
+    const communityId = parseInt(req.params.communityId)
+    const postId = parseInt(req.params.postId)
 
     try {
         const post = await db.Post.findOne({
@@ -51,7 +51,7 @@ const getCommunityPost = async (req, res) => {
 }
 
 const getAllCommunityMembers = async (req, res) => {
-    const communityId = req.params.communityId
+    const communityId = parseInt(req.params.communityId)
 
     try {
         const community = await db.Community.findByPk(communityId)
@@ -72,7 +72,7 @@ const getAllCommunityMembers = async (req, res) => {
 }
 
 const getCommunityAdminsOrModerators = async (option, req, res) => {
-    const communityId = req.params.communityId
+    const communityId = parseInt(req.params.communityId)
     var criteria
 
     try {
@@ -125,7 +125,7 @@ const getCommunityAdminsOrModerators = async (option, req, res) => {
 
 const createCommunity = async (req, res) => {
     const body = req.body
-    const userId = req.params.userId
+    const userId = parseInt(req.params.userId)
 
     // add the user as the creator of the community
     body.userId = userId
@@ -159,7 +159,7 @@ const updateCommunity = async (req, res) => {
         ...req.body,
         updatedAt: new Date(),
     }
-    const communityId = req.params.id
+    const communityId = parseInt(req.params.id)
 
     // cannot update the creator of a community
     if (body.userId) {
@@ -167,6 +167,12 @@ const updateCommunity = async (req, res) => {
     }
 
     try {
+        const community = await db.Community.findByPk(communityId)
+
+        if (!community) {
+            throw new Error('Community not found')
+        }
+
         await db.Community.update(body, {
             where: {
                 id: communityId,
@@ -184,7 +190,7 @@ const updateCommunity = async (req, res) => {
 }
 
 const deleteCommunity = async (req, res) => {
-    const communityId = req.params.id
+    const communityId = parseInt(req.params.id)
 
     try {
         const community = await db.Community.findByPk(communityId)

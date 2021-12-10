@@ -1,7 +1,7 @@
 const db = require('../models')
 
 const getAllPostComments = async (req, res) => {
-    const postId = req.params.postId
+    const postId = parseInt(req.params.postId)
 
     try {
         const post = await db.Post.findByPk(postId)
@@ -28,7 +28,7 @@ const getAllPostComments = async (req, res) => {
 const postNewComment = async (req, res) => {
     const body = req.body
     const userId = body.userId
-    const postId = req.params.postId
+    const postId = parseInt(req.params.postId)
     const replyToCommentId = body.replyToCommentId
 
     try {
@@ -67,8 +67,8 @@ const postNewComment = async (req, res) => {
 }
 
 const getCommentThread = async (req, res) => {
-    const postId = req.params.postId
-    const commentId = req.params.commentId
+    const postId = parseInt(req.params.postId)
+    const commentId = parseInt(req.params.commentId)
 
     try {
         // get the parent
@@ -132,7 +132,7 @@ const updateComment = async (req, res) => {
         const comment = await db.Comment.findByPk(commentId)
 
         if (!comment) {
-            throw new Error('Comment not found 1')
+            throw new Error('Comment not found')
         }
 
         if (comment.toJSON().postId !== postId) {
