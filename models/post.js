@@ -10,6 +10,9 @@ module.exports = (sequelize, DataTypes) => {
             models.Post.belongsTo(models.Community, {
                 foreignKey: 'communityId',
             })
+            models.Post.hasMany(models.Comment, {
+                foreignKey: 'postId',
+            })
         }
     }
     Post.init(

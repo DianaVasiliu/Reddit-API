@@ -5,10 +5,12 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             // define association here
             models.Community.belongsToMany(models.User, {
-                through: 'UserCommunity',
+                through: models.UserCommunity,
                 timestamps: false,
             })
-            models.Community.hasMany(models.Post)
+            models.Community.hasMany(models.Post, {
+                foreignKey: 'communityId',
+            })
         }
     }
     Community.init(

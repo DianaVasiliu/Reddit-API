@@ -8,6 +8,7 @@ const {
     updateUser,
     deleteUser,
     updateSubscription,
+    toggleAdminOrModerator,
 } = require('./controllers/users')
 const {
     getAllPosts,
@@ -33,6 +34,11 @@ const {
     getUserMessages,
     getUserChat,
 } = require('./controllers/messages')
+const {
+    getAllPostComments,
+    postNewComment,
+    getCommentThread,
+} = require('./controllers/comments')
 
 const port = 3001
 
@@ -70,6 +76,15 @@ app.get('/communities/:communityId/moderators', (req, res) => {
 app.post('/communities/create/:userId', createCommunity)
 app.put('/communities/:id/update', updateCommunity)
 app.delete('/communities/:id/delete', deleteCommunity)
+app.put('/communities/:communityId/admins/:userId/updateRole', (req, res) => {
+    toggleAdminOrModerator('admin', req, res)
+})
+app.put(
+    '/communities/:communityId/moderators/:userId/updateRole',
+    (req, res) => {
+        toggleAdminOrModerator('moderator', req, res)
+    }
+)
 
 app.get('/messages', getAllMessages)
 app.get('/messages/:id', getMessageById)
@@ -77,6 +92,11 @@ app.post('/users/:fromId/messages/:toId', createMessage)
 app.put('/messages/:id', deleteMessage)
 app.get('/users/:userId/messages', getUserMessages)
 app.get('/users/:fromId/messages/:toId', getUserChat)
+
+app.get('/posts/:postId/comments', getAllPostComments)
+// TODO: update posting a comment (get userId in auth token)
+app.post('/posts/:postId/comments/post', postNewComment)
+app.get('/posts/:postId/comments/:commentId', getCommentThread)
 
 app.listen(port, () => {
     console.log('Server started on port', port)

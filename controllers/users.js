@@ -130,8 +130,106 @@ const updateSubscription = async (req, res) => {
     }
 }
 
-// TODO:
-const toggleAdminOrModerator = (option, req, res) => {}
+const toggleAdminOrModerator = async (option, req, res) => {
+    const communityId = req.params.communityId
+    const userId = req.params.userId
+    var criteria
+
+    try {
+        if (option === 'admin') {
+            criteria = {
+                isCreator: 1,
+            }
+        } else if (option === 'moderator') {
+            criteria = {
+                isModerator: 1,
+            }
+        } else {
+            throw new Error('Invalid option')
+        }
+
+        // check if the user we want to update is a member of the community
+        const user = await db.UserCommunity.findOne({
+            where: {
+                userId,
+                communityId,
+            },
+        })
+
+        if (!user) {
+            throw new Error(
+                'There required user/community does not exist or is not a member of the community'
+            )
+        }
+
+        // check if we want to remove the only admin
+        // if the option is 'admin', then we count the admins of the community
+        if (option === 'admin') {
+            // if we want to remove the current admin
+            if (user.toJSON().isCreator === 1) {
+                // check if he is the only admin of the community
+                const users = await db.UserCommunity.findAll({
+                    where: {
+                        communityId,
+                        isCreator: 1,
+                    },
+                })
+
+                // if we only have one admin, we cannot remove it
+                if (users.length <= 1) {
+                    throw new Error('Cannot have community without admin')
+                } else {
+                    await db.UserCommunity.update(
+                        {
+                            isCreator: 0,
+                        },
+                        {
+                            where: {
+                                userId,
+                                communityId,
+                            },
+                        }
+                    )
+                }
+            } else {
+                await db.UserCommunity.update(
+                    {
+                        isCreator: 1,
+                        isModerator: 1,
+                    },
+                    {
+                        where: {
+                            userId,
+                            communityId,
+                        },
+                    }
+                )
+            }
+        } else {
+            if (user.toJSON().isCreator === 1) {
+                throw new Error('Cannot update moderator role of an admin')
+            }
+            await db.UserCommunity.update(
+                {
+                    isModerator: 1 - user.toJSON().isModerator,
+                },
+                {
+                    where: {
+                        userId,
+                        communityId,
+                    },
+                }
+            )
+        }
+
+        res.status(201).send('User role updated successfully')
+    } catch (e) {
+        console.error('Error:', e.message)
+        res.send({
+            error: 'Something went wrong',
+        })
+    }
+}
 
 module.exports = {
     getAllUsers,
@@ -140,4 +238,5 @@ module.exports = {
     updateUser,
     deleteUser,
     updateSubscription,
+    toggleAdminOrModerator,
 }

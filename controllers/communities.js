@@ -74,7 +74,7 @@ const getCommunityAdminsOrModerators = async (option, req, res) => {
         } else if (option === 'moderators') {
             criteria = '$Communities.UserCommunity.isModerator$'
         } else {
-            throw new Error('Wrong option')
+            throw new Error('Invalid option')
         }
 
         const moderators = await db.User.findAll({
@@ -115,8 +115,12 @@ const createCommunity = async (req, res) => {
         }
 
         const createdCommunity = await db.Community.create(body)
-        // TODO: make the user a creator in the UserCommunity table
-        await createdCommunity.addUser(user)
+        await createdCommunity.addUser(user, {
+            through: {
+                isCreator: 1,
+                isModerator: 1,
+            },
+        })
 
         res.send(createdCommunity)
     } catch (e) {
