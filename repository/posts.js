@@ -1,3 +1,5 @@
+// Contains all the logic for the posts
+
 const db = require('../models')
 
 const getAllPosts = async () => {
@@ -129,4 +131,5 @@ module.exports = {
     getPostById,
     createPost,
     updatePost,
+    deletePost,
 }

@@ -1,5 +1,5 @@
 const express = require('express')
-const { port } = require('./config/express');
+const { port } = require('./config/express')
 const bodyParser = require('body-parser')
 const app = express()
 const {
@@ -10,14 +10,14 @@ const {
     deleteUser,
     updateSubscription,
     toggleAdminOrModerator,
-} = require('./controllers/users')
+} = require('./repository/users')
 const {
     getAllPosts,
     getPostById,
     createPost,
     updatePost,
     deletePost,
-} = require('./controllers/posts')
+} = require('./repository/posts')
 const {
     getAllCommunityPosts,
     getCommunityPost,
@@ -26,7 +26,7 @@ const {
     createCommunity,
     updateCommunity,
     deleteCommunity,
-} = require('./controllers/communities')
+} = require('./repository/communities')
 const {
     getAllMessages,
     getMessageById,
@@ -34,24 +34,28 @@ const {
     deleteMessage,
     getUserMessages,
     getUserChat,
-} = require('./controllers/messages')
+} = require('./repository/messages')
 const {
     getAllPostComments,
     postNewComment,
     getCommentThread,
     updateComment,
     deleteComment,
-} = require('./controllers/comments')
+} = require('./repository/comments')
 
-const { graphqlHTTP } = require('express-graphql');
-const schema = require('./graphql');
-const authorizationMiddleware = require('./middlewares/authorization');
+const { graphqlHTTP } = require('express-graphql')
+const schema = require('./graphql')
+const authorizationMiddleware = require('./middlewares/authorization')
 
 app.use(bodyParser.json())
 
-app.use('/graphql', authorizationMiddleware, graphqlHTTP({
-    schema,
-}));
+app.use(
+    '/graphql',
+    authorizationMiddleware,
+    graphqlHTTP({
+        schema,
+    })
+)
 
 app.get('/', (req, res) => {
     res.send('Home page')
