@@ -114,11 +114,11 @@ const updateSubscription = async (req, res) => {
         }
 
         const updatedUser = await db.User.findByPk(userId)
-        const tags = await updatedUser.getCommunities()
+        const subscriptions = await updatedUser.getCommunities()
 
         const response = {
             ...updatedUser.toJSON(),
-            tags,
+            subscriptions,
         }
 
         res.status(201).send(response)
@@ -138,7 +138,7 @@ const toggleAdminOrModerator = async (option, req, res) => {
     try {
         if (option === 'admin') {
             criteria = {
-                isCreator: 1,
+                isAdmin: 1,
             }
         } else if (option === 'moderator') {
             criteria = {
@@ -166,12 +166,24 @@ const toggleAdminOrModerator = async (option, req, res) => {
         // if the option is 'admin', then we count the admins of the community
         if (option === 'admin') {
             // if we want to remove the current admin
-            if (user.toJSON().isCreator === 1) {
+            if (user.toJSON().isAdmin === 1) {
+                // check if this admin is the creator of the community
+                const creator = await db.Community.findOne({
+                    where: {
+                        id: communityId,
+                        userId,
+                    },
+                })
+
+                if (creator) {
+                    throw new Error('Cannot remove the creator as admin')
+                }
+
                 // check if he is the only admin of the community
                 const users = await db.UserCommunity.findAll({
                     where: {
                         communityId,
-                        isCreator: 1,
+                        isAdmin: 1,
                     },
                 })
 
@@ -181,7 +193,7 @@ const toggleAdminOrModerator = async (option, req, res) => {
                 } else {
                     await db.UserCommunity.update(
                         {
-                            isCreator: 0,
+                            isAdmin: 0,
                         },
                         {
                             where: {
@@ -194,7 +206,7 @@ const toggleAdminOrModerator = async (option, req, res) => {
             } else {
                 await db.UserCommunity.update(
                     {
-                        isCreator: 1,
+                        isAdmin: 1,
                         isModerator: 1,
                     },
                     {
@@ -206,7 +218,7 @@ const toggleAdminOrModerator = async (option, req, res) => {
                 )
             }
         } else {
-            if (user.toJSON().isCreator === 1) {
+            if (user.toJSON().isAdmin === 1) {
                 throw new Error('Cannot update moderator role of an admin')
             }
             await db.UserCommunity.update(

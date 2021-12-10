@@ -8,6 +8,10 @@ module.exports = (sequelize, DataTypes) => {
                 through: models.UserCommunity,
                 timestamps: false,
             })
+            models.Community.belongsTo(models.User, {
+                foreignKey: 'userId',
+            })
+            models.Community.hasMany(models.UserCommunity)
             models.Community.hasMany(models.Post, {
                 foreignKey: 'communityId',
             })
@@ -17,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         {
             name: DataTypes.STRING,
             description: DataTypes.STRING,
+            userId: DataTypes.INTEGER,
         },
         {
             sequelize,

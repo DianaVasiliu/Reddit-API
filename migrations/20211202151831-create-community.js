@@ -14,6 +14,16 @@ module.exports = {
             description: {
                 type: Sequelize.STRING,
             },
+            userId: {
+                type: Sequelize.INTEGER,
+                references: {
+                    model: {
+                        tableName: 'Users',
+                    },
+                    key: 'id',
+                },
+                onDelete: 'SET NULL',
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,
@@ -55,7 +65,7 @@ module.exports = {
                     },
                     onDelete: 'CASCADE',
                 },
-                isCreator: {
+                isAdmin: {
                     type: Sequelize.TINYINT,
                     defaultValue: 0,
                 },

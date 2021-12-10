@@ -83,11 +83,18 @@ const deleteMessage = async (req, res) => {
     }
 
     try {
+        const message = await db.Message.findByPk(messageId)
+
+        if (!message) {
+            throw new Error('Message not found')
+        }
+
         await db.Message.update(body, {
             where: {
                 id: messageId,
             },
         })
+
         res.status(202).send('Message deleted successfully')
     } catch (e) {
         console.error(e)

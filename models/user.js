@@ -12,6 +12,10 @@ module.exports = (sequelize, DataTypes) => {
                 through: models.UserCommunity,
                 timestamps: false,
             })
+            models.User.hasMany(models.Community, {
+                foreignKey: 'userId',
+            })
+            models.User.hasMany(models.UserCommunity)
             models.User.hasMany(models.Message, {
                 foreignKey: 'userId',
             })

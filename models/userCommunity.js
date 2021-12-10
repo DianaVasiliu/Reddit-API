@@ -1,10 +1,15 @@
 'use strict'
 const { Model } = require('sequelize')
 module.exports = (sequelize, DataTypes) => {
-    class UserCommunity extends Model {}
+    class UserCommunity extends Model {
+        static associate(models) {
+            models.UserCommunity.belongsTo(models.User)
+            models.UserCommunity.belongsTo(models.Community)
+        }
+    }
     UserCommunity.init(
         {
-            isCreator: DataTypes.INTEGER,
+            isAdmin: DataTypes.INTEGER,
             isModerator: DataTypes.INTEGER,
         },
         {

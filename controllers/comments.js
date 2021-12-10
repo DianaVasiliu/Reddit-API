@@ -71,6 +71,7 @@ const getCommentThread = async (req, res) => {
     const commentId = req.params.commentId
 
     try {
+        // get the parent
         const thread = await db.Comment.findOne({
             where: {
                 id: commentId,
@@ -87,9 +88,12 @@ const getCommentThread = async (req, res) => {
         var threadMessages = [thread]
 
         while (ids.length) {
+            // get the first id
+            // and remove it
             let id = ids[0]
             ids.shift()
 
+            // get all comments that are replies to the current comment
             let replies = await db.Comment.findAll({
                 where: {
                     replyToCommentId: id,
