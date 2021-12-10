@@ -145,7 +145,9 @@ const updateComment = async (req, res) => {
             },
         })
 
-        res.status(202).send('Comment updated successfully')
+        const updatedComment = await db.Comment.findByPk(commentId)
+
+        res.status(202).send(updatedComment)
     } catch (e) {
         console.error('Error:', e.message)
         res.send({
