@@ -1,4 +1,5 @@
 const express = require('express')
+const { port } = require('./config/express');
 const bodyParser = require('body-parser')
 const app = express()
 const {
@@ -42,9 +43,15 @@ const {
     deleteComment,
 } = require('./controllers/comments')
 
-const port = 3001
+const { graphqlHTTP } = require('express-graphql');
+const schema = require('./graphql');
+const authorizationMiddleware = require('./middlewares/authorization');
 
 app.use(bodyParser.json())
+
+app.use('/graphql', authorizationMiddleware, graphqlHTTP({
+    schema,
+}));
 
 app.get('/', (req, res) => {
     res.send('Home page')
