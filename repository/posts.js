@@ -2,120 +2,127 @@
 
 const db = require('../models')
 
-const getAllPosts = async (req, res) => {
+const getAllPosts = async () => {
     try {
-        const allPosts = await db.Post.findAll()
-        res.status(200).send(allPosts)
-    } catch (e) {
-        console.error(e)
-        res.send({
-            error: 'Something went wrong',
-        })
+        const allPosts = await db.Post.findAll();
+        return allPosts;
+    } catch (error) {
+        console.error('Something went wrong');
+        return null;
     }
 }
 
-const getPostById = async (req, res) => {
-    const postId = parseInt(req.params.id)
+const getPostById = async (id) => {
+    const postId = id;
 
     try {
-        const selectedPost = await db.Post.findByPk(postId)
-        const author = await selectedPost.getUser()
-        const community = await selectedPost.getCommunity()
-
-        const response = {
-            ...selectedPost.toJSON(),
-            author,
-            community,
-        }
-
-        if (selectedPost === null) {
-            res.status(404).send('Post not found')
-        } else {
-            res.status(302).send(response)
-        }
-    } catch (e) {
-        console.error(e)
-        res.send({
-            error: 'Something went wrong',
-        })
+        const selectedPost = await db.Post.findByPk(postId);
+        return selectedPost;
+    } catch (error) {
+        console.error('Something went wrong');
+        return null;
     }
 }
 
-const createPost = async (req, res) => {
-    const userId = parseInt(req.params.id)
+const createPost = async (args, context) => {
+    const {
+        title,
+        body
+    } = args;
+    const {
+        user
+    } = context;
+
+    if (!user) {
+        console.log("Tried to create a post without being logged in. (without having a token in Authorization header)\n");
+        return null;
+    }
 
     try {
-        const user = await db.User.findByPk(userId)
+        const newPost = await db.Post.create({
+            title,
+            body,
+            'author': user
+        });
 
-        if (!user) {
-            throw new Error('User not found')
-        }
-
-        const newPost = req.body
-
-        const createdPost = await user.createPost(newPost)
-
-        res.status(201).send(createdPost)
-    } catch (e) {
-        console.error(e)
-        res.send({
-            error: 'Something went wrong',
-        })
+        return newPost;
+    } catch (error) {
+        console.error(error);
+        return null;
     }
 }
 
-const updatePost = async (req, res) => {
-    const body = {
-        ...req.body,
-        updatedAt: new Date(),
+const updatePost = async (args, context) => {
+    const {
+        id,
+        title,
+        body
+    } = args;
+    const selectedPost = await db.Post.findByPk(id);
+    const {
+        user
+    } = context;
+
+    if (!user) {
+        console.log("Tried to update a post without being logged in. (without having a token in Authorization header)\n");
+        return null;
     }
-    const postId = parseInt(req.params.id)
+
+    if (selectedPost.userId != user.id) {
+        console.log('Tried to update a post without being the author\n');
+        return null;
+    }
 
     try {
-        const post = await db.Post.findByPk(postId)
-
-        if (!post) {
-            throw new Error('Post not found')
-        }
-
-        await db.Post.update(body, {
+        await db.Post.update({
+            title,
+            body,
+        }, {
             where: {
-                id: postId,
-            },
-        })
+                id
+            }
+        });
 
-        const updatedPost = await db.Post.findByPk(postId)
-        res.status(202).send(updatedPost)
+        return await db.Post.findByPk(id);
+
     } catch (e) {
-        console.error(e)
-        res.send({
-            error: 'Something went wrong',
-        })
+        console.error(e);
+        return null;
     }
 }
 
-const deletePost = async (req, res) => {
-    const postId = parseInt(req.params.id)
+const deletePost = async (args, context) => {
+    const {
+        id
+    } = args;
+
+    const {
+        user
+    } = context;
+    const selectedPost = await db.Post.findByPk(id);
+
+    if (!user) {
+        console.log("Tried to delete a post without being logged in. (without having a token in Authorization header)\n");
+        return null;
+    }
+
+    if (selectedPost.userId != user.id) {
+        console.log('Tried to delete a post without being the author\n');
+        return null;
+    }
 
     try {
-        const post = await db.Post.findByPk(postId)
-
-        if (!post) {
-            throw new Error('Post not found')
-        }
-
         await db.Post.destroy({
             where: {
-                id: postId,
+                id,
             },
-        })
-
-        res.status(202).send('Post deleted successfully')
+        });
+        return {
+            result: "Post deleted succesfully."
+        };
     } catch (e) {
-        console.error(e)
-        res.send({
-            error: 'Something went wrong',
-        })
+        console.error(e);
+        return null;
     }
 }
 

@@ -155,3 +155,7 @@ dist
 !.vscode/*.code-snippets
 
 # End of https://www.toptal.com/developers/gitignore/api/node,visualstudiocode
+
+# Database files and dumps
+*.sql
+*.sqlite

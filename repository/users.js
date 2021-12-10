@@ -102,32 +102,6 @@ const deleteUser = async (id) => {
 }
 
 //TODO: decide on parameter names for userId and communityId and update queryType
-const subscribeToCommunity = async () => {
-    // const userId = req.params.userId
-    // const communityId = req.params.communityId
-    // let error = 'Something went wrong'
-    // try {
-    //     const user = await db.User.findByPk(userId)
-    //     const community = await db.Community.findByPk(communityId)
-    //     if (!user || !community) {
-    //         throw new Error('User or community not found')
-    //     }
-    //     await user.setCommunities(community)
-    //     const updatedUser = await db.User.findByPk(userId)
-    //     const tags = await updatedUser.getCommunities()
-    //     const response = {
-    //         ...updatedUser.toJSON(),
-    //         tags,
-    //     }
-    //     res.status(201).send(response)
-    // } catch (e) {
-    //     console.error('Error:', e.message)
-    //     res.send({
-    //         error,
-    //     })
-    // }
-}
-
 const updateSubscription = async (req, res) => {
     const userId = parseInt(req.params.userId)
     const communityId = parseInt(req.params.communityId)
