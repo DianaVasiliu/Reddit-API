@@ -1,5 +1,30 @@
 const db = require('../models')
 
+const getAllCommunities = async () => {
+    try {
+        const allCommunities = await db.Community.findAll();
+        return allCommunities;
+    } catch (error) {
+        return {
+            error
+        };
+    }
+}
+
+const getCommunity = async (id) => {
+    const communityId = id;
+
+    try {
+        const selectedCommunity = await db.Community.findByPk(communityId);
+        return selectedCommunity;
+    } catch (error) {
+        return {
+            error
+        };
+    }
+}
+
+// NOTE can be done through graphQL
 const getAllCommunityPosts = async (req, res) => {
     const communityId = parseInt(req.params.communityId)
 
@@ -25,6 +50,7 @@ const getAllCommunityPosts = async (req, res) => {
     }
 }
 
+// NOTE can be done through graphQL
 const getCommunityPost = async (req, res) => {
     const communityId = parseInt(req.params.communityId)
     const postId = parseInt(req.params.postId)
@@ -214,6 +240,8 @@ const deleteCommunity = async (req, res) => {
 }
 
 module.exports = {
+    getAllCommunities,
+    getCommunity,
     getAllCommunityPosts,
     getCommunityPost,
     getAllCommunityMembers,
