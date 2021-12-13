@@ -10,6 +10,8 @@ const {
     deleteUser,
     updateSubscription,
     toggleAdminOrModerator,
+    getUserReactions,
+    updateReaction,
 } = require('./repository/users')
 const {
     getAllPosts,
@@ -17,6 +19,7 @@ const {
     createPost,
     updatePost,
     deletePost,
+    getAllPostReactions,
 } = require('./repository/posts')
 const {
     getAllCommunityPosts,
@@ -41,6 +44,7 @@ const {
     getCommentThread,
     updateComment,
     deleteComment,
+    getAllCommentReactions,
 } = require('./repository/comments')
 
 const { graphqlHTTP } = require('express-graphql')
@@ -61,22 +65,30 @@ app.get('/', (req, res) => {
     res.send('Home page')
 })
 
+// USERS
 app.get('/users', getAllUsers)
 app.get('/users/:id', getUserById)
 app.post('/users/', createUser)
 app.put('/users/:id', updateUser)
 app.delete('/users/:id', deleteUser)
+app.get('/users/:id/reactions', getUserReactions)
 
 // TODO: update creating a post (must be posted in a community)
 app.post('/users/:id/posts', createPost)
 
+// POSTS
 app.get('/posts', getAllPosts)
 app.get('/posts/:id', getPostById)
 app.put('/posts/:id', updatePost)
 app.delete('/posts/:id', deletePost)
+app.get('/posts/:postId/reactions', getAllPostReactions)
+app.put('/posts/:postId/reactions/update', (req, res) => {
+    updateReaction('post', req, res)
+})
 
 app.post('/users/:userId/communities/:communityId', updateSubscription)
 
+// COMMUNITIES
 app.get('/communities/:communityId/posts', getAllCommunityPosts)
 app.get('/communities/:communityId/posts/:postId', getCommunityPost)
 app.get('/communities/:communityId/members', getAllCommunityMembers)
@@ -99,6 +111,7 @@ app.put(
     }
 )
 
+// MESSAGES
 app.get('/messages', getAllMessages)
 app.get('/messages/:id', getMessageById)
 app.post('/users/:fromId/messages/:toId', createMessage)
@@ -106,12 +119,16 @@ app.put('/messages/:id', deleteMessage)
 app.get('/users/:userId/messages', getUserMessages)
 app.get('/users/:fromId/messages/:toId', getUserChat)
 
+// COMMENTS
 app.get('/posts/:postId/comments', getAllPostComments)
-// TODO: update posting a comment (get userId in auth token)
 app.post('/posts/:postId/comments/post', postNewComment)
 app.get('/posts/:postId/comments/:commentId', getCommentThread)
 app.put('/posts/:postId/comments/:commentId', updateComment)
 app.delete('/posts/:postId/comments/:commentId', deleteComment)
+app.put('/posts/:postId/comments/:commentId/reactions/update', (req, res) => {
+    updateReaction('comment', req, res)
+})
+app.get('/posts/:postId/comments/:commentId/reactions', getAllCommentReactions)
 
 app.listen(port, () => {
     console.log('Server started on port', port)

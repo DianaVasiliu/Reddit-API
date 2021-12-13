@@ -51,8 +51,53 @@ module.exports = {
                 type: Sequelize.DATE,
             },
         })
+
+        await queryInterface.createTable(
+            'CommentReaction',
+            {
+                id: {
+                    allowNull: false,
+                    autoIncrement: true,
+                    primaryKey: true,
+                    type: Sequelize.INTEGER,
+                },
+                userId: {
+                    type: Sequelize.INTEGER,
+                    references: {
+                        model: {
+                            tableName: 'Users',
+                        },
+                        key: 'id',
+                    },
+                    onDelete: 'CASCADE',
+                },
+                commentId: {
+                    type: Sequelize.INTEGER,
+                    allowNull: false,
+                    references: {
+                        model: {
+                            tableName: 'Comments',
+                        },
+                        key: 'id',
+                    },
+                    onDelete: 'CASCADE',
+                },
+                isUpvote: {
+                    type: Sequelize.TINYINT,
+                },
+            },
+            {
+                uniqueKeys: {
+                    actions_unique: {
+                        fields: ['userId', 'commentId'],
+                    },
+                },
+                timestamps: false,
+            }
+        )
     },
     down: async (queryInterface, Sequelize) => {
+        await queryInterface.dropTable('CommentReaction')
         await queryInterface.dropTable('Comments')
     },
 }

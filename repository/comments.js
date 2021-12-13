@@ -126,8 +126,6 @@ const updateComment = async (req, res) => {
         updatedAt: new Date(),
     }
 
-    console.log('body', body)
-
     try {
         const comment = await db.Comment.findByPk(commentId)
 
@@ -186,10 +184,43 @@ const deleteComment = async (req, res) => {
     }
 }
 
+const getAllCommentReactions = async (req, res) => {
+    const commentId = parseInt(req.params.commentId)
+
+    try {
+        const comment = await db.Comment.findByPk(commentId)
+
+        if (!comment) {
+            throw new Error('Comment not found')
+        }
+
+        const reactions = await db.CommentReaction.findAll({
+            where: {
+                commentId,
+            },
+        })
+
+        const upvotes = reactions.filter((reaction) => reaction.isUpvote === 1)
+        const nrUpvotes = upvotes.length
+        const nrDownvotes = reactions.length - nrUpvotes
+
+        const response = {
+            upvotes: nrUpvotes,
+            downvotes: nrDownvotes,
+        }
+
+        res.send(response)
+    } catch (e) {
+        console.error('Error:', e.message)
+        res.send('Something went wrong')
+    }
+}
+
 module.exports = {
     getAllPostComments,
     postNewComment,
     getCommentThread,
     updateComment,
     deleteComment,
+    getAllCommentReactions,
 }

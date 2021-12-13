@@ -8,6 +8,14 @@ module.exports = (sequelize, DataTypes) => {
             models.User.hasMany(models.Post, {
                 foreignKey: 'userId',
             })
+            models.User.belongsToMany(models.Post, {
+                through: models.PostReaction,
+                timestamps: false,
+            })
+            models.User.belongsToMany(models.Comment, {
+                through: models.CommentReaction,
+                timestamps: false,
+            })
             models.User.belongsToMany(models.Community, {
                 through: models.UserCommunity,
                 timestamps: false,
