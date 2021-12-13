@@ -1,26 +1,35 @@
 const {
   GraphQLObjectType
 } = require('graphql');
-const loginHandler = require('../repository/login');
+
+const loginInputType = require('./inputTypes/loginInputType');
 const createUserInputType = require('./inputTypes/createUserInputType');
 const createPostInputType = require('./inputTypes/createPostInputType');
-const loginInputType = require('./inputTypes/loginInputType');
+const createCommunityInputType = require('./inputTypes/createCommunityInputType')
 const updateUserInputType = require('./inputTypes/updateUserInputType');
+const updatePostInputType = require('./inputTypes/updatePostInputType');
+const updateCommunityInputType = require('./inputTypes/updateCommunityInputType');
 
 const loginResultType = require('./types/loginResultType');
 const userType = require('./types/userType');
 const postType = require('./types/postType');
+const communityType = require('./types/communityType');
+
+const loginHandler = require('../repository/login');
 const {
   createUser,
   updateUser
 } = require('../repository/users');
 const {
-  createPost, updatePost,
+  createPost,
+  updatePost,
 } = require('../repository/posts');
-const updatePostInputType = require('./inputTypes/updatePostInputType');
+const {
+  createCommunity, updateCommunity
+} = require('../repository/communities');
 
 // TODO: test login / register flow
-const mutationType = new GraphQLObjectType({ 
+const mutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
     login: {
@@ -30,11 +39,13 @@ const mutationType = new GraphQLObjectType({
           type: loginInputType,
         }
       },
-      resolve: (_, args) => {
+      resolve: (_, {
+        loginInput
+      }) => {
         const {
           email,
           password
-        } = args.loginInput;
+        } = loginInput;
 
         const token = loginHandler(email, password);
 
@@ -50,8 +61,10 @@ const mutationType = new GraphQLObjectType({
           type: createUserInputType,
         }
       },
-      resolve: async (_, args) => {
-        return createUser(args.createUserInput);
+      resolve: async (_, {
+        createUserInput
+      }) => {
+        return createUser(createUserInput);
       }
     },
     updateUser: {
@@ -61,8 +74,10 @@ const mutationType = new GraphQLObjectType({
           type: updateUserInputType,
         },
       },
-      resolve: async (_, args, context) => {
-        return updateUser(args.updateUserInput, context);
+      resolve: async (_, {
+        updateUserInput
+      }, context) => {
+        return updateUser(updateUserInput, context);
       }
     },
     createPost: {
@@ -72,8 +87,10 @@ const mutationType = new GraphQLObjectType({
           type: createPostInputType
         },
       },
-      resolve: async (_, args, context) => {
-        return createPost(args.createPostInput, context);
+      resolve: async (_, {
+        createPostInput
+      }, context) => {
+        return createPost(createPostInput, context);
       }
     },
     updatePost: {
@@ -83,8 +100,36 @@ const mutationType = new GraphQLObjectType({
           type: updatePostInputType
         },
       },
-      resolve: async (_, args, context) => {
-        return updatePost(args.updatePostInput, context);
+      resolve: async (_, {
+        updatePostInput
+      }, context) => {
+        return updatePost(updatePostInput, context);
+      }
+    },
+    createCommunity: {
+      type: communityType,
+      args: {
+        createCommunityInput: {
+          type: createCommunityInputType
+        },
+      },
+      resolve: async (_, {
+        createCommunityInput
+      }, context) => {
+        return createCommunity(createCommunityInput, context);
+      }
+    },
+    updateCommunity: {
+      type: communityType,
+      args: {
+        updateCommunityInput: {
+          type: updateCommunityInputType
+        }
+      },
+      resolve: async (_, {
+        updateCommunityInput
+      }, context) => {
+        return updateCommunity(updateCommunityInput, context);
       }
     }
   },
