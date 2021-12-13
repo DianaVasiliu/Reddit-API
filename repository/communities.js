@@ -76,6 +76,7 @@ const getCommunityPost = async (req, res) => {
     }
 }
 
+// NOTE added to graphql
 const getAllCommunityMembers = async (req, res) => {
     const communityId = parseInt(req.params.communityId)
 
@@ -97,6 +98,7 @@ const getAllCommunityMembers = async (req, res) => {
     }
 }
 
+// NOTE added to graphql
 const getCommunityAdminsOrModerators = async (option, req, res) => {
     const communityId = parseInt(req.params.communityId)
     var criteria
@@ -149,21 +151,26 @@ const getCommunityAdminsOrModerators = async (option, req, res) => {
     }
 }
 
-const createCommunity = async (req, res) => {
-    const body = req.body
-    const userId = parseInt(req.params.userId)
+const createCommunity = async (args, context) => {
+    const {
+        name,
+        description
+    } = args;
+    const {
+        user
+    } = context;
 
-    // add the user as the creator of the community
-    body.userId = userId
+    if (!user) {
+        throw new Error('Unathenticated users cannot create communities');
+    }
 
     try {
-        const user = await db.User.findByPk(userId)
+        const createdCommunity = await db.Community.create({
+            name,
+            description,
+            'userId': user.id
+        });
 
-        if (!user) {
-            throw new Error('User not found')
-        }
-
-        const createdCommunity = await db.Community.create(body)
         await createdCommunity.addUser(user, {
             through: {
                 isAdmin: 1,
@@ -171,47 +178,47 @@ const createCommunity = async (req, res) => {
             },
         })
 
-        res.send(createdCommunity)
+        return createdCommunity;
     } catch (e) {
-        console.error('Error:', e.message)
-        res.send({
-            error: 'Something went wrong',
-        })
+        return {
+            error
+        };
     }
 }
 
-const updateCommunity = async (req, res) => {
-    const body = {
-        ...req.body,
-        updatedAt: new Date(),
-    }
-    const communityId = parseInt(req.params.id)
+const updateCommunity = async (args, context) => {
+    const {
+        id,
+        name,
+        description
+    } = args;
+    const {
+        user
+    } = context;
 
-    // cannot update the creator of a community
-    if (body.userId) {
-        delete body.userId
+    const selectedCommunity = await db.Post.findByPk(id);
+
+    if (!user) {
+        throw new Error('Unathenticated users cannot update communities');
     }
+
+    // TODO: check user is admin in community before changing it
 
     try {
-        const community = await db.Community.findByPk(communityId)
-
-        if (!community) {
-            throw new Error('Community not found')
-        }
-
-        await db.Community.update(body, {
+        await db.Community.update({
+            name,
+            description,
+        }, {
             where: {
-                id: communityId,
-            },
-        })
+                id
+            }
+        });
 
-        const updatedCommunity = await db.Community.findByPk(communityId)
-        res.status(202).send(updatedCommunity)
-    } catch (e) {
-        console.error(e)
-        res.send({
-            error: 'Something went wrong',
-        })
+        return await db.Community.findByPk(id);
+    } catch (error) {
+        return {
+            error
+        };
     }
 }
 

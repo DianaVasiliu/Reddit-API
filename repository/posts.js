@@ -37,8 +37,9 @@ const createPost = async (args, context) => {
     } = context;
 
     if (!user) {
-        console.log("Tried to create a post without being logged in. (without having a token in Authorization header)\n");
-        return null;
+        return {
+            'error': 'Tried to create a post without being logged in (without having a token in Authorization header).'
+        };
     }
 
     try {
@@ -70,7 +71,7 @@ const updatePost = async (args, context) => {
 
     if (!user) {
         return {
-            'error': 'Tried to update a post without being logged in. (without having a token in Authorization header)'
+            'error': 'Tried to update a post without being logged in (without having a token in Authorization header).'
         };
     }
 
@@ -91,7 +92,6 @@ const updatePost = async (args, context) => {
         });
 
         return await db.Post.findByPk(id);
-
     } catch (error) {
         return {
             error
@@ -110,13 +110,15 @@ const deletePost = async (args, context) => {
     const selectedPost = await db.Post.findByPk(id);
 
     if (!user) {
-        console.log("Tried to delete a post without being logged in. (without having a token in Authorization header)\n");
-        return null;
+        return {
+            'error': 'Tried to delete a post without being logged in (without having a token in Authorization header).'
+        };
     }
 
     if (selectedPost.userId != user.id) {
-        console.log('Tried to delete a post without being the author\n');
-        return null;
+        return {
+            'error': 'Tried to delete a post without being the author'
+        };
     }
 
     try {
