@@ -44,8 +44,53 @@ module.exports = {
                 type: Sequelize.DATE,
             },
         })
+
+        await queryInterface.createTable(
+            'PostReaction',
+            {
+                id: {
+                    allowNull: false,
+                    autoIncrement: true,
+                    primaryKey: true,
+                    type: Sequelize.INTEGER,
+                },
+                userId: {
+                    type: Sequelize.INTEGER,
+                    references: {
+                        model: {
+                            tableName: 'Users',
+                        },
+                        key: 'id',
+                    },
+                    onDelete: 'CASCADE',
+                },
+                postId: {
+                    type: Sequelize.INTEGER,
+                    allowNull: false,
+                    references: {
+                        model: {
+                            tableName: 'Posts',
+                        },
+                        key: 'id',
+                    },
+                    onDelete: 'CASCADE',
+                },
+                isUpvote: {
+                    type: Sequelize.TINYINT,
+                },
+            },
+            {
+                uniqueKeys: {
+                    actions_unique: {
+                        fields: ['userId', 'postId'],
+                    },
+                },
+                timestamps: false,
+            }
+        )
     },
     down: async (queryInterface, Sequelize) => {
+        await queryInterface.dropTable('PostReaction')
         await queryInterface.dropTable('Posts')
     },
 }

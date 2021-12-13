@@ -142,27 +142,19 @@ const updateSubscription = async (req, res) => {
 const toggleAdminOrModerator = async (option, req, res) => {
     const communityId = parseInt(req.params.communityId)
     const userId = parseInt(req.params.userId)
-    var criteria
+    const criteria = {
+        userId,
+        communityId,
+    }
 
     try {
-        if (option === 'admin') {
-            criteria = {
-                isAdmin: 1,
-            }
-        } else if (option === 'moderator') {
-            criteria = {
-                isModerator: 1,
-            }
-        } else {
+        if (option !== 'admin' && option !== 'moderator') {
             throw new Error('Invalid option')
         }
 
         // check if the user we want to update is a member of the community
         const user = await db.UserCommunity.findOne({
-            where: {
-                userId,
-                communityId,
-            },
+            where: criteria,
         })
 
         if (!user) {
@@ -205,10 +197,7 @@ const toggleAdminOrModerator = async (option, req, res) => {
                             isAdmin: 0,
                         },
                         {
-                            where: {
-                                userId,
-                                communityId,
-                            },
+                            where: criteria,
                         }
                     )
                 }
@@ -219,10 +208,7 @@ const toggleAdminOrModerator = async (option, req, res) => {
                         isModerator: 1,
                     },
                     {
-                        where: {
-                            userId,
-                            communityId,
-                        },
+                        where: criteria,
                     }
                 )
             }
@@ -235,15 +221,207 @@ const toggleAdminOrModerator = async (option, req, res) => {
                     isModerator: 1 - user.toJSON().isModerator,
                 },
                 {
-                    where: {
-                        userId,
-                        communityId,
-                    },
+                    where: criteria,
                 }
             )
         }
 
         res.status(201).send('User role updated successfully')
+    } catch (e) {
+        console.error('Error:', e.message)
+        res.send({
+            error: 'Something went wrong',
+        })
+    }
+}
+
+const getUserReactions = async (req, res) => {
+    const { id } = req.params
+
+    try {
+        const user = await db.User.findByPk(id)
+
+        if (!user) {
+            throw new Error('User not found')
+        }
+
+        const postReactions = await db.PostReaction.findAll({
+            attributes: ['postId', 'isUpvote'],
+            where: {
+                userId: id,
+            },
+        })
+
+        const posts = []
+        await Promise.all(
+            postReactions.map(async (postReaction) => {
+                const post = await db.Post.findByPk(
+                    postReaction.toJSON().postId
+                )
+                posts.push({
+                    isUpvote: postReaction.isUpvote,
+                    post: post.toJSON(),
+                })
+            })
+        )
+
+        res.send(posts)
+    } catch (e) {
+        console.error('Error:', e.message)
+        res.send('Something went wrong')
+    }
+}
+
+const updateReaction = async (option, req, res) => {
+    const { userId, isUpvote } = req.body
+    const { postId, commentId } = req.params
+    var criteria = {
+        userId,
+        postId,
+    }
+
+    try {
+        var response = 'Success'
+
+        const post = await db.Post.findByPk(postId)
+
+        if (!post) {
+            throw new Error('Post not found')
+        }
+
+        const user = await db.User.findByPk(userId)
+
+        if (!user) {
+            throw new Error('User not found')
+        }
+
+        if (option === 'post') {
+            const reaction = await db.PostReaction.findOne({
+                attributes: ['isUpvote'],
+                where: criteria,
+            })
+
+            var postReaction = null
+
+            if (!reaction) {
+                await post.addUser(user)
+
+                await db.PostReaction.update(
+                    {
+                        isUpvote,
+                    },
+                    {
+                        where: criteria,
+                    }
+                )
+
+                postReaction = await db.PostReaction.findOne({
+                    where: criteria,
+                })
+            } else {
+                if (reaction.isUpvote === isUpvote) {
+                    await db.PostReaction.destroy({
+                        where: criteria,
+                    })
+                } else {
+                    await db.PostReaction.update(
+                        {
+                            isUpvote,
+                        },
+                        {
+                            where: criteria,
+                        }
+                    )
+
+                    postReaction = await db.PostReaction.findOne({
+                        where: criteria,
+                    })
+                }
+            }
+
+            if (!postReaction) {
+                response = {
+                    isUpvote: null,
+                }
+            } else {
+                response = {
+                    ...postReaction.toJSON(),
+                    user,
+                    post,
+                }
+            }
+        } else if (option === 'comment') {
+            const comment = await db.Comment.findByPk(commentId)
+
+            if (!comment) {
+                throw new Error('Comment not found')
+            }
+
+            criteria = {
+                userId,
+                commentId,
+            }
+
+            const reaction = await db.CommentReaction.findOne({
+                attributes: ['isUpvote'],
+                where: criteria,
+            })
+
+            var commentReaction = null
+
+            if (!reaction) {
+                await comment.addUser(user)
+
+                await db.CommentReaction.update(
+                    {
+                        isUpvote,
+                    },
+                    {
+                        where: criteria,
+                    }
+                )
+
+                commentReaction = await db.CommentReaction.findOne({
+                    where: criteria,
+                })
+            } else {
+                if (reaction.isUpvote === isUpvote) {
+                    await db.CommentReaction.destroy({
+                        where: criteria,
+                    })
+                } else {
+                    await db.CommentReaction.update(
+                        {
+                            isUpvote,
+                        },
+                        {
+                            where: criteria,
+                        }
+                    )
+
+                    commentReaction = await db.CommentReaction.findOne({
+                        where: criteria,
+                    })
+                }
+            }
+
+            if (!commentReaction) {
+                response = {
+                    isUpvote: null,
+                }
+            } else {
+                response = {
+                    ...commentReaction.toJSON(),
+                    user,
+                    post,
+                    comment,
+                }
+            }
+        } else {
+            throw new Error('Invalid option')
+        }
+
+        res.send(response)
     } catch (e) {
         console.error('Error:', e.message)
         res.send({
@@ -260,4 +438,6 @@ module.exports = {
     deleteUser,
     updateSubscription,
     toggleAdminOrModerator,
+    getUserReactions,
+    updateReaction,
 }
