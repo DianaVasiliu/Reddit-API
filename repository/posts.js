@@ -86,7 +86,7 @@ const updatePost = async (args, context) => {
                     id,
                 },
             }
-        });
+        );
 
         return await db.Post.findByPk(id);
     } catch (error) {
