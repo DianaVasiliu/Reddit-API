@@ -79,22 +79,35 @@ const updateUser = async (args, context) => {
     }
 }
 
-const deleteUser = async (id) => {
-    const userID = id
+const deleteUser = async (context) => {
+    const { user } = context;
+
+    console.log('\n\n', user, '\n\n')
+
+    if (!user) {
+        console.log(
+            'Tried to update current user without being logged in. (without having a token in Authorization header)\n'
+        )
+        return null
+    }
+
+    const { id } = user;
+
+    console.log('\n\n', id, '\n\n')
 
     try {
-        const user = await db.User.findByPk(userID)
+        const userInDb = await db.User.findByPk(id);
 
-        if (!user) {
-            throw new Error('User not found')
+        if (!userInDb) {
+            throw new Error('User not found');
         }
 
         await db.User.destroy({
             where: {
-                id: userID,
+                id: id,
             },
         })
-        return { result: 'User deleted succesfully.' }
+        return { userInDb }
     } catch (e) {
         console.error(e)
         return null

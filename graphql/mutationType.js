@@ -21,6 +21,7 @@ const loginHandler = require('../repository/login');
 const {
   createUser,
   updateUser,
+  deleteUser,
   updateSubscription,
 } = require('../repository/users');
 const {
@@ -81,6 +82,12 @@ const mutationType = new GraphQLObjectType({
         updateUserInput
       }, context) => {
         return updateUser(updateUserInput, context);
+      }
+    },
+    deleteUser: {
+      type: userType,
+      resolve: async (_, __, context) => {
+        return deleteUser(context);
       }
     },
     updateSubscription: {
