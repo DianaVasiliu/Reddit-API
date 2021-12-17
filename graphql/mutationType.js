@@ -9,26 +9,30 @@ const createCommunityInputType = require('./inputTypes/createCommunityInputType'
 const updateUserInputType = require('./inputTypes/updateUserInputType');
 const updatePostInputType = require('./inputTypes/updatePostInputType');
 const updateCommunityInputType = require('./inputTypes/updateCommunityInputType');
+const updateSubscriptionInputType = require('./inputTypes/updateSubscriptionInputType');
 
 const loginResultType = require('./types/loginResultType');
 const userType = require('./types/userType');
 const postType = require('./types/postType');
 const communityType = require('./types/communityType');
+const subscriptionType = require('./types/subscriptionType')
 
 const loginHandler = require('../repository/login');
 const {
   createUser,
-  updateUser
+  updateUser,
+  deleteUser,
+  updateSubscription,
 } = require('../repository/users');
 const {
   createPost,
   updatePost,
 } = require('../repository/posts');
 const {
-  createCommunity, updateCommunity
+  createCommunity, 
+  updateCommunity,
 } = require('../repository/communities');
 
-// TODO: test login / register flow
 const mutationType = new GraphQLObjectType({
   name: 'Mutation',
   fields: {
@@ -78,6 +82,25 @@ const mutationType = new GraphQLObjectType({
         updateUserInput
       }, context) => {
         return updateUser(updateUserInput, context);
+      }
+    },
+    deleteUser: {
+      type: userType,
+      resolve: async (_, __, context) => {
+        return deleteUser(context);
+      }
+    },
+    updateSubscription: {
+      type: subscriptionType,
+      args: {
+        updateSubscriptionInput: {
+          type: updateSubscriptionInputType,
+        },
+      },
+      resolve: async (_, {
+        updateSubscriptionInput
+      }, context) => {
+        return updateSubscription(updateSubscriptionInput, context);
       }
     },
     createPost: {
