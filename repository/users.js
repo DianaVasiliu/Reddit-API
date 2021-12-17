@@ -101,41 +101,56 @@ const deleteUser = async (id) => {
     }
 }
 
-//TODO: decide on parameter names for userId and communityId and update queryType
-const updateSubscription = async (req, res) => {
-    const userId = parseInt(req.params.userId)
-    const communityId = parseInt(req.params.communityId)
+const updateSubscription = async (args, context) => {
+    const { userId,
+            communityId, } = args
+    const { user } = context
+
+    if (!user) {
+        console.log(
+            'Tried to update subscriptions of current user without being logged in. (without having a token in Authorization header)\n'
+        )
+        return null
+    }
 
     try {
-        const user = await db.User.findByPk(userId)
+        const userInDB = await db.User.findByPk(userId)
+
+        if (userInDB.id != user.id){
+            console.log(
+                'User tried to update subscriptions of another user.\n'
+            )
+            console.log(userInDB, '\n', user)
+            return null
+        }
+
         const community = await db.Community.findByPk(communityId)
 
-        if (!user || !community) {
+        if (!userInDB || !community) {
             throw new Error('User or community not found')
         }
 
-        const userIsSubscribed = await user.hasCommunity(community)
+        const userIsSubscribed = await userInDB.hasCommunity(community)
 
         if (userIsSubscribed) {
-            await user.removeCommunity(community)
+            await userInDB.removeCommunity(community)
         } else {
-            await user.setCommunities(community)
+            await userInDB.setCommunities(community)
         }
 
         const updatedUser = await db.User.findByPk(userId)
         const subscriptions = await updatedUser.getCommunities()
 
-        const response = {
-            ...updatedUser.toJSON(),
+        return {
+            updatedUser,
             subscriptions,
         }
 
-        res.status(201).send(response)
     } catch (e) {
         console.error('Error:', e.message)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
