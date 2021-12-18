@@ -14,7 +14,6 @@ const getAllUsers = async () => {
 
 const getUserById = async (id) => {
     const userID = id
-
     try {
         const selectedUser = await db.User.findByPk(userID)
         return selectedUser
@@ -82,18 +81,14 @@ const updateUser = async (args, context) => {
 const deleteUser = async (context) => {
     const { user } = context;
 
-    console.log('\n\n', user, '\n\n')
-
     if (!user) {
         console.log(
-            'Tried to update current user without being logged in. (without having a token in Authorization header)\n'
+            'Tried to delete user without being logged in. (without having a token in Authorization header)\n'
         )
         return null
     }
 
     const { id } = user;
-
-    console.log('\n\n', id, '\n\n')
 
     try {
         const userInDb = await db.User.findByPk(id);
@@ -167,12 +162,21 @@ const updateSubscription = async (args, context) => {
     }
 }
 
-const toggleAdminOrModerator = async (option, req, res) => {
-    const communityId = parseInt(req.params.communityId)
-    const userId = parseInt(req.params.userId)
+const toggleAdminOrModerator = async (args, context) => {
+    const { communityId,
+            userId,
+            option, } = args
     const criteria = {
         userId,
         communityId,
+    }
+    const { user } = context
+
+    if (!user) {
+        console.log(
+            'Tried to toggle privilege of user without being logged in. (without having a token in Authorization header)\n'
+        )
+        return null
     }
 
     try {
@@ -181,13 +185,13 @@ const toggleAdminOrModerator = async (option, req, res) => {
         }
 
         // check if the user we want to update is a member of the community
-        const user = await db.UserCommunity.findOne({
+        const userCommunity = await db.UserCommunity.findOne({
             where: criteria,
         })
 
-        if (!user) {
+        if (!userCommunity) {
             throw new Error(
-                'There required user/community does not exist or is not a member of the community'
+                'The required user/community does not exist or is not a member of the community'
             )
         }
 
@@ -195,7 +199,7 @@ const toggleAdminOrModerator = async (option, req, res) => {
         // if the option is 'admin', then we count the admins of the community
         if (option === 'admin') {
             // if we want to remove the current admin
-            if (user.toJSON().isAdmin === 1) {
+            if (userCommunity.toJSON().isAdmin === 1) {
                 // check if this admin is the creator of the community
                 const creator = await db.Community.findOne({
                     where: {
@@ -241,12 +245,12 @@ const toggleAdminOrModerator = async (option, req, res) => {
                 )
             }
         } else {
-            if (user.toJSON().isAdmin === 1) {
+            if (userCommunity.toJSON().isAdmin === 1) {
                 throw new Error('Cannot update moderator role of an admin')
             }
             await db.UserCommunity.update(
                 {
-                    isModerator: 1 - user.toJSON().isModerator,
+                    isModerator: 1 - userCommunity.toJSON().isModerator,
                 },
                 {
                     where: criteria,
@@ -254,12 +258,12 @@ const toggleAdminOrModerator = async (option, req, res) => {
             )
         }
 
-        res.status(201).send('User role updated successfully')
+        return userCommunity
     } catch (e) {
         console.error('Error:', e.message)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 

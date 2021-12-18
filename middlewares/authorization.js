@@ -11,15 +11,18 @@ const authorizationMiddleware = async (req, res, next) => {
       const userId = decoded.id;
 
       const user = await db.User.findByPk(userId);
-      if(user) {
+      if(user) { //if user has a valid jwt
         req.user = user;
         next();
       }
-    } catch (e) {
+      else { //if user has an invalid jwt
+        next();
+      }
+    } catch (e) { 
       console.error('error', e)
       next();
     }
-  } else { 
+  } else { //if user has no authorization header
     next();
   }
 
