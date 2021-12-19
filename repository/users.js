@@ -178,6 +178,15 @@ const toggleAdminOrModerator = async (args, context) => {
         )
         return null
     }
+    else {
+        const { id } = user.toJSON();
+        if (id != userId) {
+            console.log(
+                'Tried to toggle privilege of another user\n'
+            )
+            return null
+        }
+    }
 
     try {
         if (option !== 'admin' && option !== 'moderator') {
@@ -222,7 +231,7 @@ const toggleAdminOrModerator = async (args, context) => {
 
                 // if we only have one admin, we cannot remove it
                 if (users.length <= 1) {
-                    throw new Error('Cannot have community without admin')
+                    throw new Error('Cannot own community without admin')
                 } else {
                     await db.UserCommunity.update(
                         {
@@ -246,7 +255,7 @@ const toggleAdminOrModerator = async (args, context) => {
             }
         } else {
             if (userCommunity.toJSON().isAdmin === 1) {
-                throw new Error('Cannot update moderator role of an admin')
+                throw new Error('Cannot update moderator role for someone who is also an admin')
             }
             await db.UserCommunity.update(
                 {
@@ -267,11 +276,11 @@ const toggleAdminOrModerator = async (args, context) => {
     }
 }
 
-const getUserReactions = async (req, res) => {
-    const { id } = req.params
+const getUserReactions = async (id) => {
+    const userId  = id
 
     try {
-        const user = await db.User.findByPk(id)
+        const user = await db.User.findByPk(userId)
 
         if (!user) {
             throw new Error('User not found')
@@ -280,7 +289,7 @@ const getUserReactions = async (req, res) => {
         const postReactions = await db.PostReaction.findAll({
             attributes: ['postId', 'isUpvote'],
             where: {
-                userId: id,
+                userId: userId,
             },
         })
 
@@ -292,24 +301,44 @@ const getUserReactions = async (req, res) => {
                 )
                 posts.push({
                     isUpvote: postReaction.isUpvote,
-                    post: post.toJSON(),
+                    post: post,
                 })
             })
         )
 
-        res.send(posts)
+        return posts
     } catch (e) {
         console.error('Error:', e.message)
-        res.send('Something went wrong')
+        return { 'error': 'Something went wrong' }
     }
 }
 
-const updateReaction = async (option, req, res) => {
-    const { userId, isUpvote } = req.body
-    const { postId, commentId } = req.params
+const updateReaction = async (args, context) => {
+    const { userId, 
+            isUpvote,
+            postId,
+            commentId, 
+            option, } = args
     var criteria = {
         userId,
         postId,
+    }
+    const { user } = context
+
+    if (!user) {
+        console.log(
+            'Tried to update a reaction without being logged in. (without having a token in Authorization header)\n'
+        )
+        return null
+    }
+    else {
+        const { id } = user.toJSON();
+        if (id != userId) {
+            console.log(
+                'Tried to update reaction of another user\n'
+            )
+            return null
+        }
     }
 
     try {
@@ -321,9 +350,9 @@ const updateReaction = async (option, req, res) => {
             throw new Error('Post not found')
         }
 
-        const user = await db.User.findByPk(userId)
+        const userInDB = await db.User.findByPk(userId)
 
-        if (!user) {
+        if (!userInDB) {
             throw new Error('User not found')
         }
 
@@ -336,7 +365,7 @@ const updateReaction = async (option, req, res) => {
             var postReaction = null
 
             if (!reaction) {
-                await post.addUser(user)
+                await post.addUser(userInDB)
 
                 await db.PostReaction.update(
                     {
@@ -377,8 +406,8 @@ const updateReaction = async (option, req, res) => {
                 }
             } else {
                 response = {
-                    ...postReaction.toJSON(),
-                    user,
+                    postReaction,
+                    user: userInDB,
                     post,
                 }
             }
@@ -402,7 +431,7 @@ const updateReaction = async (option, req, res) => {
             var commentReaction = null
 
             if (!reaction) {
-                await comment.addUser(user)
+                await comment.addUser(userInDB)
 
                 await db.CommentReaction.update(
                     {
@@ -443,8 +472,8 @@ const updateReaction = async (option, req, res) => {
                 }
             } else {
                 response = {
-                    ...commentReaction.toJSON(),
-                    user,
+                    commentReaction,
+                    user: userInDB,
                     post,
                     comment,
                 }
@@ -453,12 +482,12 @@ const updateReaction = async (option, req, res) => {
             throw new Error('Invalid option')
         }
 
-        res.send(response)
+        return response
     } catch (e) {
         console.error('Error:', e.message)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
