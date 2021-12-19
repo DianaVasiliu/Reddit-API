@@ -11,6 +11,7 @@ const updatePostInputType = require('./inputTypes/updatePostInputType');
 const updateCommunityInputType = require('./inputTypes/updateCommunityInputType');
 const updateSubscriptionInputType = require('./inputTypes/updateSubscriptionInputType');
 const toggleAdminOrModeratorInputType = require('./inputTypes/toggleAdminOrModeratorInputType');
+const updateReactionInputType = require('./inputTypes/updateReactionInputType');
 
 const loginResultType = require('./types/loginResultType');
 const userType = require('./types/userType');
@@ -18,6 +19,7 @@ const postType = require('./types/postType');
 const communityType = require('./types/communityType');
 const userCommunityType = require('./types/userCommunityType');
 const updateSubscriptionResultType = require('./types/updateSubscriptionResultType');
+const updateReactionResultType = require('./types/updateReactionResultType');
 
 const loginHandler = require('../repository/login');
 const {
@@ -26,6 +28,7 @@ const {
   deleteUser,
   updateSubscription,
   toggleAdminOrModerator,
+  updateReaction,
 } = require('../repository/users');
 const {
   createPost,
@@ -117,6 +120,19 @@ const mutationType = new GraphQLObjectType({
         toggleAdminOrModeratorInput
       }, context) => {
         return toggleAdminOrModerator(toggleAdminOrModeratorInput, context);
+      }
+    },
+    updateReaction: {
+      type: updateReactionResultType,
+      args: {
+        updateReactionInput: {
+          type: updateReactionInputType,
+        },
+      },
+      resolve: async (_, {
+        updateReactionInput
+      }, context) => {
+        return updateReaction(updateReactionInput, context);
       }
     },
     createPost: {

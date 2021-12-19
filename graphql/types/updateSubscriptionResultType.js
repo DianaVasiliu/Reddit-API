@@ -4,7 +4,7 @@ const {
   } = require('graphql');
   
   const updateSubscriptionsResultType = new GraphQLObjectType({
-    name: 'UpdateSubscriptionsResult',
+    name: 'UpdateSubscriptionResult',
     fields: () => {
       const communityType = require('./communityType');
       const userType = require('./userType');
