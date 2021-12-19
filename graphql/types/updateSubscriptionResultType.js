@@ -1,12 +1,10 @@
 const {
     GraphQLObjectType,
-    GraphQLString,
     GraphQLList,
-    GraphQLID,
   } = require('graphql');
   
-  const subscriptionType = new GraphQLObjectType({
-    name: 'Subscription',
+  const updateSubscriptionsResultType = new GraphQLObjectType({
+    name: 'UpdateSubscriptionsResult',
     fields: () => {
       const communityType = require('./communityType');
       const userType = require('./userType');
@@ -14,13 +12,13 @@ const {
       return {
         user: {
           type: userType,
-          resolve: async (source, context) => {
+          resolve: async (source) => {
             return source.updatedUser;
           }
         },
         subscriptions: {
           type: new GraphQLList(communityType),
-          resolve: async (source, context) => {
+          resolve: async (source) => {
             return source.subscriptions;
           }
         },
@@ -28,4 +26,4 @@ const {
     },
   });
   
-  module.exports = subscriptionType;
+  module.exports = updateSubscriptionsResultType;

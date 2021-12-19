@@ -222,7 +222,7 @@ const toggleAdminOrModerator = async (args, context) => {
 
                 // if we only have one admin, we cannot remove it
                 if (users.length <= 1) {
-                    throw new Error('Cannot have community without admin')
+                    throw new Error('Cannot own community without admin')
                 } else {
                     await db.UserCommunity.update(
                         {
@@ -246,7 +246,7 @@ const toggleAdminOrModerator = async (args, context) => {
             }
         } else {
             if (userCommunity.toJSON().isAdmin === 1) {
-                throw new Error('Cannot update moderator role of an admin')
+                throw new Error('Cannot update moderator role for someone who is also an admin')
             }
             await db.UserCommunity.update(
                 {
@@ -267,11 +267,11 @@ const toggleAdminOrModerator = async (args, context) => {
     }
 }
 
-const getUserReactions = async (req, res) => {
-    const { id } = req.params
+const getUserReactions = async (id) => {
+    const userId  = id
 
     try {
-        const user = await db.User.findByPk(id)
+        const user = await db.User.findByPk(userId)
 
         if (!user) {
             throw new Error('User not found')
@@ -280,7 +280,7 @@ const getUserReactions = async (req, res) => {
         const postReactions = await db.PostReaction.findAll({
             attributes: ['postId', 'isUpvote'],
             where: {
-                userId: id,
+                userId: userId,
             },
         })
 
@@ -292,15 +292,15 @@ const getUserReactions = async (req, res) => {
                 )
                 posts.push({
                     isUpvote: postReaction.isUpvote,
-                    post: post.toJSON(),
+                    post: post,
                 })
             })
         )
 
-        res.send(posts)
+        return posts
     } catch (e) {
         console.error('Error:', e.message)
-        res.send('Something went wrong')
+        return { 'error': 'Something went wrong' }
     }
 }
 

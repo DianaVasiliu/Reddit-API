@@ -17,7 +17,7 @@ const userType = require('./types/userType');
 const postType = require('./types/postType');
 const communityType = require('./types/communityType');
 const userCommunityType = require('./types/userCommunityType');
-const subscriptionType = require('./types/subscriptionType')
+const updateSubscriptionResultType = require('./types/updateSubscriptionResultType');
 
 const loginHandler = require('../repository/login');
 const {
@@ -94,7 +94,7 @@ const mutationType = new GraphQLObjectType({
       }
     },
     updateSubscription: {
-      type: subscriptionType,
+      type: updateSubscriptionResultType,
       args: {
         updateSubscriptionInput: {
           type: updateSubscriptionInputType,

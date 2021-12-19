@@ -8,10 +8,12 @@ const {
 const userType = require('./types/userType');
 const postType = require('./types/postType');
 const communityType = require('./types/communityType');
+const reactionType = require('./types/reactionType');
 
 const {
   getAllUsers,
-  getUserById
+  getUserById,
+  getUserReactions,
 } = require('../repository/users');
 const {
   getAllPosts,
@@ -42,6 +44,19 @@ const queryType = new GraphQLObjectType({
         id
       }, context) => {
         return getUserById(id);
+      }
+    },
+    reactions: {
+      type: new GraphQLList(reactionType),
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, {
+        id
+      }) => {
+        return await getUserReactions(id);
       }
     },
     posts: {
