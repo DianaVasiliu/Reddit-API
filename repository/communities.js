@@ -161,7 +161,7 @@ const createCommunity = async (args, context) => {
     } = context;
 
     if (!user) {
-        throw new Error('Unathenticated users cannot create communities');
+        throw new Error('Unauthenticated users cannot create communities');
     }
 
     try {
@@ -188,21 +188,43 @@ const createCommunity = async (args, context) => {
 
 const updateCommunity = async (args, context) => {
     const {
-        id,
+        communityId,
         name,
         description
     } = args;
+
     const {
         user
     } = context;
 
-    const selectedCommunity = await db.Post.findByPk(id);
+    const {
+        id
+    } = user;
+
+    const criteria = {
+        userId: id,
+        communityId,
+    }
 
     if (!user) {
         throw new Error('Unathenticated users cannot update communities');
     }
 
-    // TODO: check user is admin in community before changing it
+    const selectedCommunity = await db.Community.findByPk(communityId);
+    const selectedUserCommunity = await db.UserCommunity.findOne({
+        where: criteria,
+    })
+
+    // check if the user who wants to update the community is a member of it and an admin or moderator
+    if (!selectedCommunity) {
+        throw new Error('Community not found');
+    }
+    else if (!selectedUserCommunity) {
+        throw new Error('Currently logged in user is not a member of the community');
+    }
+    else if (selectedUserCommunity.toJSON().isAdmin !== 1 && selectedUserCommunity.toJSON().isModerator !== 1) {
+        throw new Error('Currently logged in user is not an admin or moderator for the community');
+    }
 
     try {
         await db.Community.update({
@@ -210,11 +232,11 @@ const updateCommunity = async (args, context) => {
             description,
         }, {
             where: {
-                id
+                communityId
             }
         });
 
-        return await db.Community.findByPk(id);
+        return await db.Community.findByPk(communityId);
     } catch (error) {
         return {
             error
