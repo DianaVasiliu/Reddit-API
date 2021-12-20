@@ -207,7 +207,7 @@ const updateCommunity = async (args, context) => {
     }
 
     if (!user) {
-        throw new Error('Unathenticated users cannot update communities');
+        throw new Error('Unauthenticated users cannot update communities');
     }
 
     const selectedCommunity = await db.Community.findByPk(communityId);
@@ -244,9 +244,30 @@ const updateCommunity = async (args, context) => {
     }
 }
 
-const deleteCommunity = async (req, res) => {
-    const communityId = parseInt(req.params.id)
+const deleteCommunity = async (args, context) => {
+    const { communityId } = args;
+    const { user } = context;
+    const { id } = user;
+    const criteria = {
+        userId: id,
+        communityId,
+    }
 
+    if (!user) {
+        throw new Error('Unauthenticated users cannot delete communities');
+    }
+
+    const selectedUserCommunity = await db.UserCommunity.findOne({
+        where: criteria,
+    })
+
+    if (!selectedUserCommunity) {
+        throw new Error('Currently logged in user is not a member of the community that is to be deleted');
+    }
+    else if (selectedUserCommunity.toJSON().isAdmin !== 1) {
+        throw new Error('Currently logged in user is not an admin of the community that is to be deleted');
+    }
+ 
     try {
         const community = await db.Community.findByPk(communityId)
 
@@ -262,9 +283,9 @@ const deleteCommunity = async (req, res) => {
         res.status(202).send('Community deleted successfully')
     } catch (e) {
         console.error(e)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
