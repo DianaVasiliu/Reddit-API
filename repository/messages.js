@@ -148,9 +148,19 @@ const getUserMessages = async (req, res) => {
     }
 }
 
-const getUserChat = async (req, res) => {
-    const fromId = parseInt(req.params.fromId)
-    const toId = parseInt(req.params.toId)
+const getUserChat = async (args, context) => {
+    const { fromId,
+            toId, } = args
+
+    const { user } = context
+
+    if (!user) {
+        throw new Error('Cannot get messages of unauthenticated user')
+    }
+
+    if (user.toJSON().id !== fromId) {
+        throw new Error("Cannot display messages of another user to currently logged in user")
+    }
 
     try {
         if (fromId === toId) {
@@ -171,17 +181,18 @@ const getUserChat = async (req, res) => {
             },
         })
 
-        var jsonMessages = messages.map((message) => message.toJSON())
-        jsonMessages.sort((a, b) => {
-            return a.createdAt - b.createdAt
-        })
+        // var jsonMessages = messages.map((message) => message.toJSON())
+        // jsonMessages.sort((a, b) => {
+        //     return a.createdAt - b.createdAt
+        // })
 
-        res.status(201).send(jsonMessages)
+        //TODO: sort without turning into json
+        return messages
     } catch (e) {
         console.error(e)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
