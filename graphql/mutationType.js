@@ -12,6 +12,7 @@ const updateCommunityInputType = require('./inputTypes/updateCommunityInputType'
 const updateSubscriptionInputType = require('./inputTypes/updateSubscriptionInputType');
 const toggleAdminOrModeratorInputType = require('./inputTypes/toggleAdminOrModeratorInputType');
 const updateReactionInputType = require('./inputTypes/updateReactionInputType');
+const createMessageInputType = require('./inputTypes/createMessageInputType');
 
 const loginResultType = require('./types/loginResultType');
 const userType = require('./types/userType');
@@ -20,6 +21,7 @@ const communityType = require('./types/communityType');
 const userCommunityType = require('./types/userCommunityType');
 const updateSubscriptionResultType = require('./types/updateSubscriptionResultType');
 const updateReactionResultType = require('./types/updateReactionResultType');
+const messageType = require('./types/messageType');
 
 const loginHandler = require('../repository/login');
 const {
@@ -38,6 +40,9 @@ const {
   createCommunity, 
   updateCommunity,
 } = require('../repository/communities');
+const {
+  createMessage,
+} = require('../repository/messages');
 
 const mutationType = new GraphQLObjectType({
   name: 'Mutation',
@@ -185,6 +190,19 @@ const mutationType = new GraphQLObjectType({
         updateCommunityInput
       }, context) => {
         return updateCommunity(updateCommunityInput, context);
+      }
+    },
+    createMessage: {
+      type: messageType,
+      args: {
+        createMessageInput: {
+          type: createMessageInputType
+        }
+      },
+      resolve: async (_, {
+        createMessageInput
+      }, context) => {
+        return createMessage(createMessageInput, context);
       }
     }
   },

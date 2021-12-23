@@ -43,13 +43,34 @@ const getMessageById = async (req, res) => {
     }
 }
 
-const createMessage = async (req, res) => {
-    const fromId = parseInt(req.params.fromId)
-    const toId = parseInt(req.params.toId)
+const createMessage = async (args, context) => {
+    const {
+        fromId,
+        toId,
+        text,
+    } = args;
+    const { user } = context;
+
+    if (!user) {
+        console.log(
+            'Unauthenticated user cannot send message'
+        )
+        return null;
+    }
+
+    if (parseInt(fromId) !== user.toJSON().id) {
+        console.log(
+            'User cannot send a message from another id other than his own'
+        )
+        return null;
+    }
 
     try {
         if (fromId === toId) {
-            throw new Error('Cannot send message to yourself')
+            console.log(
+                'Cannot send message to yourself'
+            )
+            return null;
         }
 
         const fromUser = await db.User.findByPk(fromId)
@@ -60,19 +81,20 @@ const createMessage = async (req, res) => {
         }
 
         const newMessage = {
-            ...req.body,
+            //...req.body,
+            text,
             userId: fromId,
             toId,
         }
 
         const createdMessage = await fromUser.createMessage(newMessage)
 
-        res.status(201).send(createdMessage)
+        return createdMessage;
     } catch (e) {
         console.error(e)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
@@ -148,9 +170,19 @@ const getUserMessages = async (req, res) => {
     }
 }
 
-const getUserChat = async (req, res) => {
-    const fromId = parseInt(req.params.fromId)
-    const toId = parseInt(req.params.toId)
+const getUserChat = async (args, context) => {
+    const { fromId,
+            toId, } = args
+
+    const { user } = context
+
+    if (!user) {
+        throw new Error('Cannot get messages of unauthenticated user')
+    }
+
+    if (user.toJSON().id !== fromId) {
+        throw new Error("Cannot display messages of another user to currently logged in user")
+    }
 
     try {
         if (fromId === toId) {
@@ -171,17 +203,18 @@ const getUserChat = async (req, res) => {
             },
         })
 
-        var jsonMessages = messages.map((message) => message.toJSON())
-        jsonMessages.sort((a, b) => {
-            return a.createdAt - b.createdAt
-        })
+        // var jsonMessages = messages.map((message) => message.toJSON())
+        // jsonMessages.sort((a, b) => {
+        //     return a.createdAt - b.createdAt
+        // })
 
-        res.status(201).send(jsonMessages)
+        //TODO: sort without turning into json
+        return messages
     } catch (e) {
         console.error(e)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
