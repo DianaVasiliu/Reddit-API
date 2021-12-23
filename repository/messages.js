@@ -43,13 +43,34 @@ const getMessageById = async (req, res) => {
     }
 }
 
-const createMessage = async (req, res) => {
-    const fromId = parseInt(req.params.fromId)
-    const toId = parseInt(req.params.toId)
+const createMessage = async (args, context) => {
+    const {
+        fromId,
+        toId,
+        text,
+    } = args;
+    const { user } = context;
+
+    if (!user) {
+        console.log(
+            'Unauthenticated user cannot send message'
+        )
+        return null;
+    }
+
+    if (parseInt(fromId) !== user.toJSON().id) {
+        console.log(
+            'User cannot send a message from another id other than his own'
+        )
+        return null;
+    }
 
     try {
         if (fromId === toId) {
-            throw new Error('Cannot send message to yourself')
+            console.log(
+                'Cannot send message to yourself'
+            )
+            return null;
         }
 
         const fromUser = await db.User.findByPk(fromId)
@@ -60,19 +81,20 @@ const createMessage = async (req, res) => {
         }
 
         const newMessage = {
-            ...req.body,
+            //...req.body,
+            text,
             userId: fromId,
             toId,
         }
 
         const createdMessage = await fromUser.createMessage(newMessage)
 
-        res.status(201).send(createdMessage)
+        return createdMessage;
     } catch (e) {
         console.error(e)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
