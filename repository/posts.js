@@ -123,7 +123,7 @@ const deletePost = async (args, context) => {
             'error': 'User is not a member of the community this post was made in'
         };
     }
-    if (!selectedUserCommunity.isAdmin || !selectedUserCommunity.isModerator) {
+    if (!selectedUserCommunity.isAdmin && !selectedUserCommunity.isModerator) {
         return {
             'error': 'Tried to delete a post without being the author or moderator'
         };
