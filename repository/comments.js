@@ -25,17 +25,32 @@ const getAllPostComments = async (req, res) => {
     }
 }
 
-const postNewComment = async (req, res) => {
-    const body = req.body
-    const userId = body.userId
-    const postId = parseInt(req.params.postId)
+const postNewComment = async (args, context) => {
+    const { body,
+            userId,
+            postId, } = args
     const replyToCommentId = body.replyToCommentId
+    const { user } = context
+
+    if (!user) {
+        console.log(
+            'Unauthenticated user cannot post comments'
+            )
+        return null;
+    }
+
+    if (userId != user.id) {
+        console.log(
+            'User can only post comments using is own id'
+            )
+        return null;
+    }
 
     try {
         const post = await db.Post.findByPk(postId)
-        const user = await db.User.findByPk(userId)
+        const userInDB = await db.User.findByPk(userId)
 
-        if (!user || !post) {
+        if (!userInDB || !post) {
             throw new Error('User or post not found')
         }
 
@@ -57,12 +72,12 @@ const postNewComment = async (req, res) => {
             postId,
         })
 
-        res.send(newComment)
+        return newComment;
     } catch (e) {
         console.error('Error:', e.message)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
