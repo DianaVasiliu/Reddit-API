@@ -39,19 +39,18 @@ const postNewComment = async (args, context) => {
         return null;
     }
 
-    if (userId != user.id) {
-        console.log(
-            'User can only post comments using is own id'
-            )
-        return null;
-    }
-
     try {
         const post = await db.Post.findByPk(postId)
         const userInDB = await db.User.findByPk(userId)
 
         if (!userInDB || !post) {
             throw new Error('User or post not found')
+        }
+
+        if (userId != user.id) {
+            throw new Error(
+                'User can only post comments using is own id'
+                )
         }
 
         if (replyToCommentId) {
@@ -132,13 +131,21 @@ const getCommentThread = async (req, res) => {
     }
 }
 
-const updateComment = async (req, res) => {
-    const postId = parseInt(req.params.postId)
-    const commentId = parseInt(req.params.commentId)
-    const reqBody = req.body
+const updateComment = async (args, context) => {
+    const { postId,
+            commentId,
+            reqBody, } = args
     const body = {
         body: reqBody.body,
         updatedAt: new Date(),
+    }
+    const { user } = context
+
+    if (!user) {
+        console.log(
+            'Unauthenticated user cannot post comments'
+            )
+        return null;
     }
 
     try {
@@ -152,6 +159,12 @@ const updateComment = async (req, res) => {
             throw new Error('Comment not found')
         }
 
+        if (comment.toJSON().userId != user.id) {
+            throw new Error(
+                'User can only post comments using is own id'
+                )
+        }
+
         await db.Comment.update(body, {
             where: {
                 id: commentId,
@@ -160,12 +173,12 @@ const updateComment = async (req, res) => {
 
         const updatedComment = await db.Comment.findByPk(commentId)
 
-        res.status(202).send(updatedComment)
+        return updatedComment
     } catch (e) {
         console.error('Error:', e.message)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
