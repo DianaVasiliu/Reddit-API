@@ -98,10 +98,18 @@ const createMessage = async (args, context) => {
     }
 }
 
-const deleteMessage = async (req, res) => {
-    const messageId = parseInt(req.params.id)
+const deleteMessage = async (args, context) => {
+    const { messageId } = args
     const body = {
         text: '<< This message was deleted >>',
+    }
+    const { user } = context
+
+    if (!user) {
+        console.log(
+            'Unauthenticated user cannot delete messages'
+        )
+        return null
     }
 
     try {
@@ -111,29 +119,45 @@ const deleteMessage = async (req, res) => {
             throw new Error('Message not found')
         }
 
+        if (message.toJSON().userId !== user.id) {
+            throw new Error('User cannot delete a message other than his own')
+        }
+
         await db.Message.update(body, {
             where: {
                 id: messageId,
             },
         })
 
-        res.status(202).send('Message deleted successfully')
+        return message
     } catch (e) {
         console.error(e)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
-const getUserMessages = async (req, res) => {
-    const userId = parseInt(req.params.userId)
+const getUserMessages = async (args, context) => {
+    const { userId } = args
+    const { user } = context
+
+    if (!user) {
+        console.log(
+            'Unauthenticated user cannot get messages'
+        )
+        return null
+    }
 
     try {
-        const user = await db.User.findByPk(userId)
+        const userInDB = await db.User.findByPk(userId)
 
-        if (!user) {
+        if (!userInDB) {
             throw new Error('User not found')
+        }
+
+        if (userId !== user.id) {
+            throw new Error('User can only get his own messages')
         }
 
         const messages = await db.Message.findAll({
@@ -161,12 +185,12 @@ const getUserMessages = async (req, res) => {
             }
         })
 
-        res.send(groupedMessages)
+        return groupedMessages
     } catch (e) {
         console.error(e)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 

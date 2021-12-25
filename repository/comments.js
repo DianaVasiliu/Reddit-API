@@ -25,18 +25,32 @@ const getAllPostComments = async (req, res) => {
     }
 }
 
-const postNewComment = async (req, res) => {
-    const body = req.body
-    const userId = body.userId
-    const postId = parseInt(req.params.postId)
+const postNewComment = async (args, context) => {
+    const { body,
+            userId,
+            postId, } = args
     const replyToCommentId = body.replyToCommentId
+    const { user } = context
+
+    if (!user) {
+        console.log(
+            'Unauthenticated user cannot post comments'
+            )
+        return null;
+    }
 
     try {
         const post = await db.Post.findByPk(postId)
-        const user = await db.User.findByPk(userId)
+        const userInDB = await db.User.findByPk(userId)
 
-        if (!user || !post) {
+        if (!userInDB || !post) {
             throw new Error('User or post not found')
+        }
+
+        if (userId != user.id) {
+            throw new Error(
+                'User can only post comments using is own id'
+                )
         }
 
         if (replyToCommentId) {
@@ -57,12 +71,12 @@ const postNewComment = async (req, res) => {
             postId,
         })
 
-        res.send(newComment)
+        return newComment;
     } catch (e) {
         console.error('Error:', e.message)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
@@ -117,13 +131,21 @@ const getCommentThread = async (req, res) => {
     }
 }
 
-const updateComment = async (req, res) => {
-    const postId = parseInt(req.params.postId)
-    const commentId = parseInt(req.params.commentId)
-    const reqBody = req.body
+const updateComment = async (args, context) => {
+    const { postId,
+            commentId,
+            reqBody, } = args
     const body = {
         body: reqBody.body,
         updatedAt: new Date(),
+    }
+    const { user } = context
+
+    if (!user) {
+        console.log(
+            'Unauthenticated user cannot post comments'
+            )
+        return null;
     }
 
     try {
@@ -135,6 +157,12 @@ const updateComment = async (req, res) => {
 
         if (comment.toJSON().postId !== postId) {
             throw new Error('Comment not found')
+        }
+
+        if (comment.toJSON().userId != user.id) {
+            throw new Error(
+                'User can only post comments using is own id'
+                )
         }
 
         await db.Comment.update(body, {
@@ -145,18 +173,26 @@ const updateComment = async (req, res) => {
 
         const updatedComment = await db.Comment.findByPk(commentId)
 
-        res.status(202).send(updatedComment)
+        return updatedComment
     } catch (e) {
         console.error('Error:', e.message)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
-const deleteComment = async (req, res) => {
-    const postId = parseInt(req.params.postId)
-    const commentId = parseInt(req.params.commentId)
+const deleteComment = async (args, context) => {
+    const { postId,
+            commentId,} = args
+    const { user } = context
+
+    if (!user) {
+        console.log(
+            'Unauthenticated user cannot delete comments'
+        )
+        return null;
+    }
 
     try {
         const comment = await db.Comment.findByPk(commentId)
@@ -169,18 +205,35 @@ const deleteComment = async (req, res) => {
             throw new Error('Comment not found')
         }
 
+        //checking whether user is deleting his own comment or a moderator is deleting someone else's comment
+        const post = await db.Post.findByPk(postId)
+        const { userId,
+                communityId,} = post.toJSON()
+        const userCommunity = await db.userCommunity.findOne({
+            where: {
+                userId,
+                communityId,
+            },
+        })
+
+        if (user.id !== userId && !userCommunity.toJSON().isModerator) {
+            throw new Error(
+                'User cannot delete a comment that is not his own when he is not a moderator'
+            )
+        }
+
         await db.Comment.destroy({
             where: {
                 id: commentId,
             },
         })
 
-        res.status(202).send('Comment deleted successfully')
+        return comment
     } catch (e) {
         console.error('Error:', e.message)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 
