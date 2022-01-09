@@ -80,26 +80,24 @@ const postNewComment = async (args, context) => {
     }
 }
 
-const getCommentThread = async (req, res) => {
-    const postId = parseInt(req.params.postId)
-    const commentId = parseInt(req.params.commentId)
+const getCommentThread = async (id) => {
+    const commentId = id;
 
     try {
         // get the parent
         const thread = await db.Comment.findOne({
             where: {
                 id: commentId,
-                postId,
                 replyToCommentId: null,
             },
         })
 
         if (!thread) {
-            throw new Error('Thread not found')
+            throw new Error ('Thread not found');
         }
 
-        var ids = [thread.id]
-        var threadMessages = [thread]
+        let ids = [thread.id];
+        let threadMessages = [thread];
 
         while (ids.length) {
             // get the first id
@@ -122,12 +120,12 @@ const getCommentThread = async (req, res) => {
             })
         }
 
-        res.send(threadMessages)
+        return threadMessages;
     } catch (e) {
         console.error('Error:', e.message)
-        res.send({
+        return {
             error: 'Something went wrong',
-        })
+        }
     }
 }
 

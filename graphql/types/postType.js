@@ -3,6 +3,7 @@ const {
   GraphQLString,
   GraphQLID,
 } = require('graphql');
+const commentType = require('./commentType');
 
 const postType = new GraphQLObjectType({
   name: 'Post',
@@ -11,7 +12,6 @@ const postType = new GraphQLObjectType({
     const communityType = require('./communityType');
 
     return {
-
       id: {
         type: GraphQLID,
       },
@@ -32,7 +32,13 @@ const postType = new GraphQLObjectType({
         resolve: async (source) => {
           return await source.getCommunity();
         }
-      }
+      },
+      comments: {
+        type: new GraphQLList(commentType),
+        resolve: async (source) => {
+          return await source.getComments();
+        }
+      },
     }
   },
 });

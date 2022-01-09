@@ -8,6 +8,7 @@ const {
 const userType = require('./types/userType');
 const postType = require('./types/postType');
 const communityType = require('./types/communityType');
+const commentType = require('./types/commentType');
 const reactionType = require('./types/reactionType');
 
 const {
@@ -22,6 +23,9 @@ const {
 const {
   getAllCommunities, getCommunity
 } = require('../repository/communities');
+const {
+  getCommentThread
+} = require('../repository/comments');
 
 
 const queryType = new GraphQLObjectType({
@@ -44,19 +48,6 @@ const queryType = new GraphQLObjectType({
         id
       }, context) => {
         return getUserById(id);
-      }
-    },
-    reactions: {
-      type: new GraphQLList(reactionType),
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        }
-      },
-      resolve: async (source, {
-        id
-      }) => {
-        return await getUserReactions(id);
       }
     },
     posts: {
@@ -97,6 +88,19 @@ const queryType = new GraphQLObjectType({
         return await getCommunity(id);
       }
     },
+    thread: {
+      type: new GraphQLList(commentType),
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, {
+        id
+      }, context) => {
+        return await getCommentThread(id);
+      }
+    }
   }
 });
 

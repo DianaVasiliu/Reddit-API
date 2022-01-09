@@ -259,7 +259,7 @@ const deleteCommunity = async (args, context) => {
 
     const selectedUserCommunity = await db.UserCommunity.findOne({
         where: criteria,
-    })
+    });
 
     if (!selectedUserCommunity) {
         throw new Error('Currently logged in user is not a member of the community that is to be deleted');
@@ -280,7 +280,8 @@ const deleteCommunity = async (args, context) => {
                 id: communityId,
             },
         })
-        res.status(202).send('Community deleted successfully')
+        
+        return community;
     } catch (e) {
         console.error(e)
         return {

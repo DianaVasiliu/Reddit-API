@@ -35,10 +35,12 @@ const {
 const {
   createPost,
   updatePost,
+  deletePost,
 } = require('../repository/posts');
 const {
   createCommunity, 
   updateCommunity,
+  deleteCommunity,
 } = require('../repository/communities');
 const {
   createMessage,
@@ -166,6 +168,19 @@ const mutationType = new GraphQLObjectType({
         return updatePost(updatePostInput, context);
       }
     },
+    deletePost: {
+      type: postType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, {
+        id
+      }, context) => {
+        return deletePost(id);
+      }
+    },
     createCommunity: {
       type: communityType,
       args: {
@@ -190,6 +205,19 @@ const mutationType = new GraphQLObjectType({
         updateCommunityInput
       }, context) => {
         return updateCommunity(updateCommunityInput, context);
+      }
+    },
+    deleteCommunity: {
+      type: communityType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, {
+        id
+      }, context) => {
+        return deleteCommunity(id);
       }
     },
     createMessage: {

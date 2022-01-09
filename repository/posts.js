@@ -97,32 +97,37 @@ const updatePost = async (args, context) => {
 }
 
 const deletePost = async (args, context) => {
-    const { id } = args
-    const { user } = context
-    const selectedPost = await db.Post.findByPk(id)
+    const { id } = args;
+    const { user } = context;
+    const selectedPost = await db.Post.findByPk(id);
 
     if (!user) {
         return {
             'error': 'Tried to delete a post without being logged in (without having a token in Authorization header).'
         };
     }
+
     if (!selectedPost) {
         return {
             'error': 'Post not found'
-        }
+        };
     }
+
     criteria = {
         userId: user.toJSON().id,
         communityId: selectedPost.toJSON().communityId,
-    }
+    };
+
     const selectedUserCommunity = await db.UserCommunity.findOne({
         where: criteria,
-    })
+    });
+
     if (!selectedUserCommunity) {
         return {
             'error': 'User is not a member of the community this post was made in'
         };
     }
+
     if (!selectedUserCommunity.isAdmin && !selectedUserCommunity.isModerator) {
         return {
             'error': 'Tried to delete a post without being the author or moderator'
@@ -130,14 +135,15 @@ const deletePost = async (args, context) => {
     }
 
     try {
+        const post = await db.Post.findByPk(id);
+
         await db.Post.destroy({
             where: {
                 id,
             },
         })
-        return {
-            result: "Post deleted succesfully."
-        };
+
+        return post;
     } catch (error) {
         return {
             error
