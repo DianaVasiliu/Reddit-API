@@ -5,30 +5,30 @@ const db = require('../models')
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        const messages = []
+        const messages = [];
 
-        const allUsers = await db.User.findAll()
+        const allUsers = await db.User.findAll();
 
         for (let i = 0; i < 200; i++) {
-            const userId = Math.floor(Math.random() * (allUsers.length - 1)) + 1
-            var toId = Math.floor(Math.random() * (allUsers.length - 1)) + 1
+            const fromIndex = Math.floor(Math.random() * (allUsers.length - 1));
+            var toIndex = Math.floor(Math.random() * (allUsers.length - 1));
 
-            while (toId === userId) {
-                toId = Math.floor(Math.random() * (allUsers.length - 1)) + 1
+            while (toIndex === fromIndex) {
+                toIndex = Math.floor(Math.random() * (allUsers.length - 1));
             }
 
             messages.push({
-                userId,
-                toId,
+                userId: allUsers[fromIndex].id,
+                toId: allUsers[toIndex].id,
                 text: faker.lorem.sentence(),
                 createdAt: new Date(),
-            })
+            });
         }
 
-        await queryInterface.bulkInsert('Messages', messages)
+        await queryInterface.bulkInsert('Messages', messages);
     },
 
     down: async (queryInterface, Sequelize) => {
-        await queryInterface.bulkDelete('Messages', null, {})
+        await queryInterface.bulkDelete('Messages', null, {});
     },
 }

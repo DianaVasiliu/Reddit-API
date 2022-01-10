@@ -9,12 +9,10 @@ const userType = require('./types/userType');
 const postType = require('./types/postType');
 const communityType = require('./types/communityType');
 const commentType = require('./types/commentType');
-const reactionType = require('./types/reactionType');
 
 const {
   getAllUsers,
   getUserById,
-  getUserReactions,
 } = require('../repository/users');
 const {
   getAllPosts,
