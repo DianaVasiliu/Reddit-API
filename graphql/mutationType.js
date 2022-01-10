@@ -48,8 +48,16 @@ const {
 const {
   createMessage,
 } = require('../repository/messages');
+const {
+  updateCommentReaction,
+  updatePostReaction
+} = require('../repository/reactions');
 const commentType = require('./types/commentType');
 const { postNewComment, updateComment, deleteComment } = require('../repository/comments');
+const commentReactionType = require('./types/commentReactionType');
+const postReactionType = require('./types/postReactionType');
+const updatePostReactionInputType = require('./inputTypes/updatePostReactionInputType');
+const updateCommentReactionInputType = require('./inputTypes/updateCommentReactionType');
 
 const mutationType = new GraphQLObjectType({
   name: 'Mutation',
@@ -276,7 +284,34 @@ const mutationType = new GraphQLObjectType({
       }, context) => {
         return createMessage(createMessageInput, context);
       }
-    }
+    },
+    updatePostReaction: {
+      type: postReactionType,
+      args: {
+        updatePostReactionInput: {
+          type: updatePostReactionInputType
+        }
+      },
+      resolve: async (_, {
+        updatePostReactionInput
+      }, context) => {
+        return updateCommentReaction(updatePostReactionInput, context);
+      }
+    },
+    updateCommentReaction: {
+      type: commentReactionType,
+      args: {
+        commentReactionInput: {
+          type: updateCommentReactionInputType
+        }
+      },
+      resolve: async (_, {
+        commentReactionInput
+      }, context) => {
+        return updateCommentReaction(commentReactionInput, context);
+      }
+    },
+    
   },
 })
 

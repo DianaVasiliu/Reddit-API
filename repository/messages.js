@@ -1,6 +1,7 @@
 // Contains all the logic for the messages
 
 const db = require('../models')
+const { Op } = require("sequelize");
 
 const getAllMessages = async (req, res) => {
     try {
@@ -139,101 +140,64 @@ const deleteMessage = async (args, context) => {
 }
 
 const getUserMessages = async (args, context) => {
-    const { userId } = args
-    const { user } = context
+    const { userId } = args;
+    const { user } = context;
 
     if (!user) {
         console.log(
             'Unauthenticated user cannot get messages'
-        )
-        return null
+        );
+        return null;
     }
 
+    const conversation = [ userId, user.id ];
     try {
-        const userInDB = await db.User.findByPk(userId)
+        const userInDB = await db.User.findByPk(userId);
 
         if (!userInDB) {
-            throw new Error('User not found')
+            throw new Error('User not found');
         }
 
-        if (userId !== user.id) {
-            throw new Error('User can only get his own messages')
+        if (userId === user.id) {
+            throw new Error('User cannot get his own messages');
         }
 
         const messages = await db.Message.findAll({
             where: {
-                userId,
+                userId: conversation,
+                toId: conversation,
             },
-        })
+        });
 
-        var jsonMessages = messages.map((message) => message.toJSON())
-        jsonMessages.sort((a, b) => {
-            return a.createdAt - b.createdAt
-        })
-
-        const groupedMessages = {}
-
-        jsonMessages.forEach((message) => {
-            const id = parseInt(message.toId)
-
-            if (id in groupedMessages) {
-                groupedMessages[id]['messages'].push(message)
-            } else {
-                groupedMessages[id] = {
-                    messages: [message],
-                }
-            }
-        })
-
-        return groupedMessages
+        return groupedMessages;
     } catch (e) {
-        console.error(e)
+        console.error(e);
         return {
             error: 'Something went wrong',
-        }
+        };
     }
 }
 
-const getUserChat = async (args, context) => {
-    const { fromId,
-            toId, } = args
-
-    const { user } = context
+const getUserChats = async (context) => {
+    const { user } = context;
 
     if (!user) {
-        throw new Error('Cannot get messages of unauthenticated user')
-    }
-
-    if (user.toJSON().id !== fromId) {
-        throw new Error("Cannot display messages of another user to currently logged in user")
+        throw new Error('Cannot get messages of unauthenticated user');
     }
 
     try {
-        if (fromId === toId) {
-            throw new Error('Cannot have self chat')
-        }
-
-        const fromUser = await db.User.findByPk(fromId)
-        const toUser = await db.User.findByPk(toId)
-
-        if (!fromUser || !toUser) {
-            throw new Error('Sender or recipient not found')
-        }
-
-        const messages = await db.Message.findAll({
+        const conversationsIds = await db.Message.findAll({
             where: {
                 userId: fromId,
-                toId,
+                [Op.or]: [{ userId: user.id }, { toId: userId }]
             },
-        })
+        }).map((item) => item.toId === user.id ? item.userId : item.toId);
 
-        // var jsonMessages = messages.map((message) => message.toJSON())
-        // jsonMessages.sort((a, b) => {
-        //     return a.createdAt - b.createdAt
-        // })
+        const users = await db.User.findAll({
+            id: conversationsIds
+        });
 
-        //TODO: sort without turning into json
-        return messages
+        return users;
     } catch (e) {
         console.error(e)
         return {

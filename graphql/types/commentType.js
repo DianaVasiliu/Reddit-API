@@ -26,14 +26,22 @@ const commentType = new GraphQLObjectType({
     },
     reactions: {
       type: GraphQLInt,
-      resolve: async (source, { ids }, context) => {
-        let reactions = await db.CommentReaction.findAll({
+      resolve: async (source) => {
+        let upvoteReactions = await db.CommentReaction.findAll({
           where: {
             commentId: source.id,
+            isUpvote: true
           },
         });
 
-        return reactions.length;
+        let downvoteReactions = await db.CommentReaction.findAll({
+          where: {
+            commentId: source.id,
+            isUpvote: false
+          },
+        });
+
+        return upvoteReactions.length - downvoteReactions.length;
       },
     },
   }),

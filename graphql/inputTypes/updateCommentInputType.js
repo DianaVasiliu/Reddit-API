@@ -9,4 +9,4 @@ const updateCommentInputType = new GraphQLInputObjectType({
     },
 });
 
-module.exports = createCommunityInputType;
+module.exports = updateCommentInputType;

@@ -24,6 +24,8 @@ const {
 const {
   getCommentThread
 } = require('../repository/comments');
+const messageType = require('./types/messageType');
+const { getUserMessages, getUserChats } = require('../repository/messages');
 
 
 const queryType = new GraphQLObjectType({
@@ -93,12 +95,27 @@ const queryType = new GraphQLObjectType({
           type: new GraphQLNonNull(GraphQLID),
         }
       },
-      resolve: async (source, {
-        id
-      }, context) => {
+      resolve: async (source, { id }, context) => {
         return await getCommentThread(id);
       }
-    }
+    },
+    messages: {
+      type: new GraphQLList(messageType),
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, { id }, context) => {
+        return await getUserMessages(id, context);
+      }    
+    },
+    chats: {
+      type: new GraphQLList(userType),
+      resolve: async (source, args, context) => {
+        return await getUserChats(context);
+      }    
+    },
   }
 });
 

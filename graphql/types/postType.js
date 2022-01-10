@@ -39,6 +39,26 @@ const postType = new GraphQLObjectType({
           return await source.getComments();
         }
       },
+      reactions: {
+        type: GraphQLInt,
+        resolve: async (source) => {
+          let upvoteReactions = await db.PostReaction.findAll({
+            where: {
+              postId: source.id,
+              isUpvote: true
+            },
+          });
+
+          let downvoteReactions = await db.PostReaction.findAll({
+            where: {
+              postId: source.id,
+              isUpvote: false
+            },
+          });
+  
+          return upvoteReactions.length - downvoteReactions.length;
+        },
+      },
     }
   },
 });
