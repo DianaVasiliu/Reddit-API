@@ -13,6 +13,9 @@ const updateSubscriptionInputType = require('./inputTypes/updateSubscriptionInpu
 const toggleAdminOrModeratorInputType = require('./inputTypes/toggleAdminOrModeratorInputType');
 const updateReactionInputType = require('./inputTypes/updateReactionInputType');
 const createMessageInputType = require('./inputTypes/createMessageInputType');
+const createCommentInputType = require('./inputTypes/createCommentInputType');
+const updateCommentInputType = require('./inputTypes/updateCommentInputType');
+
 
 const loginResultType = require('./types/loginResultType');
 const userType = require('./types/userType');
@@ -45,6 +48,8 @@ const {
 const {
   createMessage,
 } = require('../repository/messages');
+const commentType = require('./types/commentType');
+const { postNewComment, updateComment, deleteComment } = require('../repository/comments');
 
 const mutationType = new GraphQLObjectType({
   name: 'Mutation',
@@ -179,6 +184,45 @@ const mutationType = new GraphQLObjectType({
         id
       }, context) => {
         return deletePost(id);
+      }
+    },
+    createComment: {
+      type: commentType,
+      args: {
+        createCommentInput: {
+          type: createCommentInputType
+        },
+      },
+      resolve: async (_, {
+        createCommentInput
+      }, context) => {
+        return postNewComment(createCommentInput, context);
+      }
+    },
+    updateComment: {
+      type: commentType,
+      args: {
+        updateCommentInput: {
+          type: updateCommentInputType
+        },
+      },
+      resolve: async (_, {
+        updateCommentInput
+      }, context) => {
+        return updateComment(updateCommentInput, context);
+      }
+    },
+    deleteComment: {
+      type: commentType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, {
+        id
+      }, context) => {
+        return deleteComment(id);
       }
     },
     createCommunity: {

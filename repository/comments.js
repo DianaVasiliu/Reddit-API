@@ -26,31 +26,20 @@ const getAllPostComments = async (req, res) => {
 }
 
 const postNewComment = async (args, context) => {
-    const { body,
-            userId,
-            postId, } = args
-    const replyToCommentId = body.replyToCommentId
-    const { user } = context
+    const { body, postId, replyToCommentId } = args;
+    const { user } = context;
 
     if (!user) {
-        console.log(
-            'Unauthenticated user cannot post comments'
-            )
+        console.log('Unauthenticated user cannot post comments');
         return null;
     }
 
     try {
-        const post = await db.Post.findByPk(postId)
-        const userInDB = await db.User.findByPk(userId)
+        const post = await db.Post.findByPk(postId);
+        const userInDB = await db.User.findByPk(userId);
 
         if (!userInDB || !post) {
-            throw new Error('User or post not found')
-        }
-
-        if (userId != user.id) {
-            throw new Error(
-                'User can only post comments using is own id'
-                )
+            throw new Error('User or post not found');
         }
 
         if (replyToCommentId) {
@@ -59,26 +48,28 @@ const postNewComment = async (args, context) => {
                     postId,
                     id: replyToCommentId,
                 },
-            })
+            });
 
             if (!comment) {
-                throw new Error('Cannot reply to inexistent comment')
+                throw new Error('Cannot reply to inexistent comment');
             }
         }
 
         const newComment = await db.Comment.create({
-            ...body,
+            userId,
             postId,
-        })
+            replyToCommentId,
+            body,
+        });
 
         return newComment;
     } catch (e) {
-        console.error('Error:', e.message)
+        console.error('Error:', e.message);
         return {
             error: 'Something went wrong',
-        }
+        };
     }
-}
+};
 
 const getCommentThread = async (id) => {
     const commentId = id;
@@ -130,19 +121,13 @@ const getCommentThread = async (id) => {
 }
 
 const updateComment = async (args, context) => {
-    const { postId,
-            commentId,
-            reqBody, } = args
-    const body = {
-        body: reqBody.body,
-        updatedAt: new Date(),
-    }
-    const { user } = context
+    const { body } = args;
+    const { user } = context;
 
     if (!user) {
         console.log(
-            'Unauthenticated user cannot post comments'
-            )
+            'Unauthenticated user cannot update comment'
+            );
         return null;
     }
 
@@ -150,17 +135,13 @@ const updateComment = async (args, context) => {
         const comment = await db.Comment.findByPk(commentId)
 
         if (!comment) {
-            throw new Error('Comment not found')
-        }
-
-        if (comment.toJSON().postId !== postId) {
-            throw new Error('Comment not found')
+            throw new Error('Comment not found');
         }
 
         if (comment.toJSON().userId != user.id) {
             throw new Error(
-                'User can only post comments using is own id'
-                )
+                'Only user that posted can only edit comments'
+                );
         }
 
         await db.Comment.update(body, {
@@ -169,14 +150,14 @@ const updateComment = async (args, context) => {
             },
         })
 
-        const updatedComment = await db.Comment.findByPk(commentId)
+        const updatedComment = await db.Comment.findByPk(commentId);
 
-        return updatedComment
+        return updatedComment;
     } catch (e) {
-        console.error('Error:', e.message)
+        console.error('Error:', e.message);
         return {
             error: 'Something went wrong',
-        }
+        };
     }
 }
 
