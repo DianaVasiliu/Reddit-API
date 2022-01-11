@@ -65,6 +65,7 @@ app.get('/', (req, res) => {
     res.send('Home page')
 })
 
+/*
 // USERS
 app.get('/users', getAllUsers)
 app.get('/users/:id', getUserById)
@@ -129,6 +130,7 @@ app.put('/posts/:postId/comments/:commentId/reactions/update', (req, res) => {
     updateReaction('comment', req, res)
 })
 app.get('/posts/:postId/comments/:commentId/reactions', getAllCommentReactions)
+*/
 
 app.listen(port, () => {
     console.log('Server started on port', port)

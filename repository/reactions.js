@@ -22,20 +22,20 @@ const updatePostReaction = async (args, context) => {
             },
         });
 
-        console.log(reaction);
-        /*if (!reaction) {
+        if (!reaction) {
             reaction = await db.PostReaction.create({
-                    postId: parseInt(postId),
-                    isUpvote,
-                    userId: user.id,
-                });
+                postId,
+                isUpvote,
+                userId: user.id,
+            });
         } else {
             reaction.isUpvote = isUpvote;
             reaction.save();
-        }*/
+        }
 
         return reaction;
     } catch (e) {
+        console.log(e);
         throw new Error(e.message);
     }
 };
@@ -45,21 +45,19 @@ const updateCommentReaction = async (args, context) => {
     const { user } = context;
 
     if (!user) {
-        console.log('Unauthenticated user cannot react to comment');
-        return null;
+        throw new Error('Unauthenticated user cannot react to post');
     }
 
     try {
-        const comment = await db.Comment.findByPk(postId);
+        const comment = await db.Comment.findByPk(commentId);
 
         if (!comment) {
-            throw new Error('Post not found');
+            throw new Error('Comment not found');
         }
 
         let reaction = await db.CommentReaction.findOne({
             where: {
                 commentId,
-                isUpvote,
                 userId: user.id,
             },
         });
@@ -71,15 +69,14 @@ const updateCommentReaction = async (args, context) => {
                 userId: user.id,
             });
         } else {
-            reaction.update({ isUpvote });
+            reaction.isUpvote = isUpvote;
+            reaction.save();
         }
 
         return reaction;
     } catch (e) {
-        console.error('Error:', e.message);
-        return {
-            error: 'Something went wrong',
-        };
+        console.log(e);
+        throw new Error(e.message);
     }
 };
 

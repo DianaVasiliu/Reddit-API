@@ -10,6 +10,8 @@ module.exports = (sequelize, DataTypes) => {
             models.Comment.belongsToMany(models.User, {
                 through: models.CommentReaction,
                 timestamps: false,
+                foreignKey: 'userId',
+                otherKey: 'commentId'
             })
             models.Comment.belongsTo(models.Post, {
                 foreignKey: 'postId',
