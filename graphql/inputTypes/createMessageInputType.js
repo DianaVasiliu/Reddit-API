@@ -3,9 +3,6 @@ const { GraphQLInputObjectType, GraphQLNonNull, GraphQLID, GraphQLString } = req
 const createMessageInputType = new GraphQLInputObjectType({
   name: 'CreateMessageInput',
   fields: {
-    fromId: {
-      type: new GraphQLNonNull(GraphQLID),
-    },
     toId: {
         type: new GraphQLNonNull(GraphQLID),
     },

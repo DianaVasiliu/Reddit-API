@@ -5,6 +5,8 @@ const {
   GraphQLInt,
 } = require('graphql');
 const db = require('../../models');
+const postType = require('./postType');
+const userType = require('./userType');
 
 const commentType = new GraphQLObjectType({
   name: 'Comment',
@@ -12,11 +14,17 @@ const commentType = new GraphQLObjectType({
     id: {
       type: GraphQLID,
     },
-    userId: {
-      type: GraphQLID,
+    user: {
+      type: userType,
+      resolve: async (source) => {
+        return await source.getUser();
+      }
     },
-    postId: {
-      type: GraphQLID,
+    post: {
+      type: postType,
+      resolve: async (source) => {
+        return await source.getPost();
+      }
     },
     replyToCommentId: {
       type: GraphQLID,

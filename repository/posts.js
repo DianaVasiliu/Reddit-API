@@ -96,8 +96,7 @@ const updatePost = async (args, context) => {
     }
 }
 
-const deletePost = async (args, context) => {
-    const { id } = args;
+const deletePost = async (id, context) => {
     const { user } = context;
     const selectedPost = await db.Post.findByPk(id);
 
@@ -108,14 +107,12 @@ const deletePost = async (args, context) => {
     }
 
     if (!selectedPost) {
-        return {
-            'error': 'Post not found'
-        };
+        throw new Error('Post not found');
     }
 
     criteria = {
-        userId: user.toJSON().id,
-        communityId: selectedPost.toJSON().communityId,
+        userId: user.id,
+        communityId: selectedPost.communityId,
     };
 
     const selectedUserCommunity = await db.UserCommunity.findOne({
@@ -123,15 +120,15 @@ const deletePost = async (args, context) => {
     });
 
     if (!selectedUserCommunity) {
-        return {
-            'error': 'User is not a member of the community this post was made in'
-        };
+        throw new Error(
+            'User is not a member of the community this post was made in'
+        );
     }
 
-    if (!selectedUserCommunity.isAdmin && !selectedUserCommunity.isModerator) {
-        return {
-            'error': 'Tried to delete a post without being the author or moderator'
-        };
+    if (!selectedUserCommunity.isAdmin && !selectedUserCommunity.isModerator && user.id !== post.userId) {
+        throw new Error(
+            'Tried to delete a post without being the author or admin or moderator'
+        );
     }
 
     try {
@@ -141,13 +138,14 @@ const deletePost = async (args, context) => {
             where: {
                 id,
             },
-        })
+        });
 
+        console.log(post);
         return post;
     } catch (error) {
-        return {
+        throw new Error(
             error
-        };
+        );
     }
 }
 

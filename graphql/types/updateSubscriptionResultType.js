@@ -13,7 +13,7 @@ const {
         user: {
           type: userType,
           resolve: async (source) => {
-            return source.updatedUser;
+            return source.user;
           }
         },
         subscriptions: {

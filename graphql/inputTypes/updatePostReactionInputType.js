@@ -3,7 +3,7 @@ const { GraphQLInputObjectType, GraphQLBoolean, GraphQLID, GraphQLNonNull } = re
 const updatePostReactionInputType = new GraphQLInputObjectType({
   name: 'UpdatePostReactionInputType',
   fields: {
-    commentId: {
+    postId: {
         type: new GraphQLNonNull(GraphQLID),
     },
     isUpvote: {

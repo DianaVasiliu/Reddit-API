@@ -36,7 +36,7 @@ const postNewComment = async (args, context) => {
 
     try {
         const post = await db.Post.findByPk(postId);
-        const userInDB = await db.User.findByPk(userId);
+        const userInDB = await db.User.findByPk(user.id);
 
         if (!userInDB || !post) {
             throw new Error('User or post not found');
@@ -56,7 +56,7 @@ const postNewComment = async (args, context) => {
         }
 
         const newComment = await db.Comment.create({
-            userId,
+            userId: user.id,
             postId,
             replyToCommentId,
             body,
@@ -65,9 +65,7 @@ const postNewComment = async (args, context) => {
         return newComment;
     } catch (e) {
         console.error('Error:', e.message);
-        return {
-            error: 'Something went wrong',
-        };
+        throw new Error('Something went wrong');
     }
 };
 
@@ -81,10 +79,10 @@ const getCommentThread = async (id) => {
                 id: commentId,
                 replyToCommentId: null,
             },
-        })
+        });
 
         if (!thread) {
-            throw new Error ('Thread not found');
+            throw new Error('Thread not found');
         }
 
         let ids = [thread.id];
@@ -93,128 +91,108 @@ const getCommentThread = async (id) => {
         while (ids.length) {
             // get the first id
             // and remove it
-            let id = ids[0]
-            ids.shift()
+            let id = ids[0];
+            ids.shift();
 
             // get all comments that are replies to the current comment
             let replies = await db.Comment.findAll({
                 where: {
                     replyToCommentId: id,
-                    postId,
                 },
-            })
+            });
 
-            threadMessages = threadMessages.concat(replies)
+            threadMessages = threadMessages.concat(replies);
 
             replies.forEach((reply) => {
-                ids.push(reply.id)
-            })
+                ids.push(reply.id);
+            });
         }
 
         return threadMessages;
     } catch (e) {
-        console.error('Error:', e.message)
-        return {
-            error: 'Something went wrong',
-        }
+        console.error('Error: ', e.message);
+        throw new Error('Something went wrong');
     }
-}
+};
 
 const updateComment = async (args, context) => {
-    const { body } = args;
+    const { body, commentId } = args;
     const { user } = context;
 
     if (!user) {
-        console.log(
-            'Unauthenticated user cannot update comment'
-            );
-        return null;
+        throw new Error('Unauthenticated user cannot update comment');
     }
 
     try {
-        const comment = await db.Comment.findByPk(commentId)
+        const comment = await db.Comment.findByPk(commentId);
 
         if (!comment) {
             throw new Error('Comment not found');
         }
 
         if (comment.toJSON().userId != user.id) {
-            throw new Error(
-                'Only user that posted can only edit comments'
-                );
+            throw new Error('Only user that posted can only edit comments');
         }
 
-        await db.Comment.update(body, {
+        await db.Comment.update({ body }, {
             where: {
                 id: commentId,
             },
-        })
-
+        });
+        console.log(comment);
         const updatedComment = await db.Comment.findByPk(commentId);
+        console.log(updatedComment);
 
         return updatedComment;
     } catch (e) {
         console.error('Error:', e.message);
-        return {
-            error: 'Something went wrong',
-        };
+        throw new Error('Something went wrong');
     }
-}
+};
 
-const deleteComment = async (args, context) => {
-    const { postId,
-            commentId,} = args
-    const { user } = context
+const deleteComment = async (commentId, context) => {
+    const { user } = context;
+
+    const comment = await db.Comment.findByPk(commentId);
+
+    if (!comment) {
+        throw new Error('Comment not found');
+    }
 
     if (!user) {
-        console.log(
-            'Unauthenticated user cannot delete comments'
-        )
+        console.log('Unauthenticated user cannot delete comments');
         return null;
     }
 
     try {
-        const comment = await db.Comment.findByPk(commentId)
-
-        if (!comment) {
-            throw new Error('Comment not found')
-        }
-
-        if (comment.toJSON().postId !== postId) {
-            throw new Error('Comment not found')
-        }
-
         //checking whether user is deleting his own comment or a moderator is deleting someone else's comment
-        const post = await db.Post.findByPk(postId)
-        const { userId,
-                communityId,} = post.toJSON()
-        const userCommunity = await db.userCommunity.findOne({
+        const post = await db.Post.findByPk(comment.postId);
+        const { userId, communityId } = post;
+        const userCommunity = await db.UserCommunity.findOne({
             where: {
                 userId,
                 communityId,
             },
-        })
+        });
 
-        if (user.id !== userId && !userCommunity.toJSON().isModerator) {
+        if (user.id != comment.userId !== userId && userCommunity && !userCommunity.isModerator) {
             throw new Error(
                 'User cannot delete a comment that is not his own when he is not a moderator'
-            )
+            );
         }
 
         await db.Comment.destroy({
             where: {
                 id: commentId,
             },
-        })
+        });
 
-        return comment
+        return comment;
     } catch (e) {
-        console.error('Error:', e.message)
-        return {
-            error: 'Something went wrong',
-        }
+        console.error('Error:', e.message);
+        throw new Error('Something went wrong');
     }
-}
+};
 
 const getAllCommentReactions = async (req, res) => {
     const commentId = parseInt(req.params.commentId)

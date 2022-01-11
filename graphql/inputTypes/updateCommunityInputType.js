@@ -8,7 +8,7 @@ const {
 const updateCommunityInputType = new GraphQLInputObjectType({
     name: 'UpdateCommunityInput',
     fields: {
-        id: {
+        communityId: {
             type: new GraphQLNonNull(GraphQLID),
         },
         name: {

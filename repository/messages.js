@@ -45,40 +45,30 @@ const getMessageById = async (req, res) => {
 }
 
 const createMessage = async (args, context) => {
-    const {
-        fromId,
-        toId,
-        text,
-    } = args;
+    const { toId, text } = args;
     const { user } = context;
+    const fromId = user.id;
 
     if (!user) {
-        console.log(
-            'Unauthenticated user cannot send message'
-        )
-        return null;
+        throw new Error('Unauthenticated user cannot send message');
     }
 
     if (parseInt(fromId) !== user.toJSON().id) {
-        console.log(
+        throw new Error(
             'User cannot send a message from another id other than his own'
-        )
-        return null;
+        );
     }
 
     try {
         if (fromId === toId) {
-            console.log(
-                'Cannot send message to yourself'
-            )
-            return null;
+            throw new Error('Cannot send message to yourself');
         }
 
-        const fromUser = await db.User.findByPk(fromId)
-        const toUser = await db.User.findByPk(toId)
+        const fromUser = await db.User.findByPk(fromId);
+        const toUser = await db.User.findByPk(toId);
 
         if (!fromUser || !toUser) {
-            throw new Error('Sender or recipient not found')
+            throw new Error('Sender or recipient not found');
         }
 
         const newMessage = {
@@ -86,18 +76,16 @@ const createMessage = async (args, context) => {
             text,
             userId: fromId,
             toId,
-        }
+        };
 
-        const createdMessage = await fromUser.createMessage(newMessage)
+        const createdMessage = await fromUser.createMessage(newMessage);
 
         return createdMessage;
     } catch (e) {
-        console.error(e)
-        return {
-            error: 'Something went wrong',
-        }
+        console.error(e);
+        throw new Error('Something went wrong');
     }
-}
+};
 
 const deleteMessage = async (args, context) => {
     const { messageId } = args
@@ -139,8 +127,7 @@ const deleteMessage = async (args, context) => {
     }
 }
 
-const getUserMessages = async (args, context) => {
-    const { userId } = args;
+const getUserMessages = async (id, context) => {
     const { user } = context;
 
     if (!user) {
@@ -150,16 +137,15 @@ const getUserMessages = async (args, context) => {
         return null;
     }
 
-    const conversation = [ userId, user.id ];
+    const conversation = [ id, user.id ];
     try {
-        const userInDB = await db.User.findByPk(userId);
-
+        const userInDB = await db.User.findByPk(id);
         if (!userInDB) {
             throw new Error('User not found');
         }
 
-        if (userId === user.id) {
-            throw new Error('User cannot get his own messages');
+        if (id === user.id) {
+            throw new Error('User cannot get messages to himself');
         }
 
         const messages = await db.Message.findAll({
@@ -167,9 +153,12 @@ const getUserMessages = async (args, context) => {
                 userId: conversation,
                 toId: conversation,
             },
+            order: [
+                ['createdAt', 'DESC'],
+            ],
         });
 
-        return groupedMessages;
+        return messages;
     } catch (e) {
         console.error(e);
         return {
@@ -186,15 +175,18 @@ const getUserChats = async (context) => {
     }
 
     try {
-        const conversationsIds = await db.Message.findAll({
+        const messages = await db.Message.findAll({
             where: {
-                userId: fromId,
-                [Op.or]: [{ userId: user.id }, { toId: userId }]
+                [Op.or]: [{ userId: user.id }, { toId: user.id }]
             },
-        }).map((item) => item.toId === user.id ? item.userId : item.toId);
-
+        });
+        
+        conversationsIds = messages.map((item) => item.toId === user.id ? item.userId : item.toId);
+        console.log(conversationsIds);
         const users = await db.User.findAll({
-            id: conversationsIds
+            where: {
+                id: conversationsIds
+            }
         });
 
         return users;
@@ -212,5 +204,5 @@ module.exports = {
     createMessage,
     deleteMessage,
     getUserMessages,
-    getUserChat,
+    getUserChats,
 }

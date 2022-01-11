@@ -197,14 +197,7 @@ const updateCommunity = async (args, context) => {
         user
     } = context;
 
-    const {
-        id
-    } = user;
-
-    const criteria = {
-        userId: id,
-        communityId,
-    }
+    const userId = user.id;
 
     if (!user) {
         throw new Error('Unauthenticated users cannot update communities');
@@ -212,7 +205,10 @@ const updateCommunity = async (args, context) => {
 
     const selectedCommunity = await db.Community.findByPk(communityId);
     const selectedUserCommunity = await db.UserCommunity.findOne({
-        where: criteria,
+        where: {
+            userId,
+            communityId
+        },
     })
 
     // check if the user who wants to update the community is a member of it and an admin or moderator
@@ -222,8 +218,8 @@ const updateCommunity = async (args, context) => {
     else if (!selectedUserCommunity) {
         throw new Error('Currently logged in user is not a member of the community');
     }
-    else if (selectedUserCommunity.toJSON().isAdmin !== 1 && selectedUserCommunity.toJSON().isModerator !== 1) {
-        throw new Error('Currently logged in user is not an admin or moderator for the community');
+    else if (selectedUserCommunity.isAdmin !== 1) {
+        throw new Error('Currently logged in user is not an admin for the community');
     }
 
     try {
@@ -232,25 +228,30 @@ const updateCommunity = async (args, context) => {
             description,
         }, {
             where: {
-                communityId
+                id: communityId
             }
         });
-
-        return await db.Community.findByPk(communityId);
+        
+        let returnCommunity = await db.Community.findByPk(communityId);
+        console.log(returnCommunity);
+        return returnCommunity;
     } catch (error) {
-        return {
-            error
-        };
+        throw new Error(error);
     }
 }
 
-const deleteCommunity = async (args, context) => {
-    const { communityId } = args;
+const deleteCommunity = async (communityId, context) => {
     const { user } = context;
     const { id } = user;
     const criteria = {
         userId: id,
         communityId,
+    };
+
+    const community = await db.Community.findByPk(communityId);
+
+    if (!community) {
+        throw new Error('Community not found');
     }
 
     if (!user) {
@@ -262,33 +263,28 @@ const deleteCommunity = async (args, context) => {
     });
 
     if (!selectedUserCommunity) {
-        throw new Error('Currently logged in user is not a member of the community that is to be deleted');
+        throw new Error(
+            'Currently logged in user is not a member of the community that is to be deleted'
+        );
+    } else if (selectedUserCommunity.toJSON().isAdmin !== 1) {
+        throw new Error(
+            'Currently logged in user is not an admin of the community that is to be deleted'
+        );
     }
-    else if (selectedUserCommunity.toJSON().isAdmin !== 1) {
-        throw new Error('Currently logged in user is not an admin of the community that is to be deleted');
-    }
- 
+
     try {
-        const community = await db.Community.findByPk(communityId)
-
-        if (!community) {
-            throw new Error('Community not found')
-        }
-
         await db.Community.destroy({
             where: {
                 id: communityId,
             },
-        })
-        
+        });
+
         return community;
     } catch (e) {
-        console.error(e)
-        return {
-            error: 'Something went wrong',
-        }
+        console.error(e);
+        throw new Error('Something went wrong');
     }
-}
+};
 
 module.exports = {
     getAllCommunities,

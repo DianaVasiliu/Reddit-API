@@ -5,8 +5,7 @@ const updatePostReaction = async (args, context) => {
     const { user } = context;
 
     if (!user) {
-        console.log('Unauthenticated user cannot react to post');
-        return null;
+        throw new Error('Unauthenticated user cannot react to post');
     }
 
     try {
@@ -17,25 +16,27 @@ const updatePostReaction = async (args, context) => {
         }
 
         let reaction = await db.PostReaction.findOne({
-            postId,
-            isUpvote,
-            userId: user.id,
+            where: {
+                postId,
+                userId: user.id,
+            },
         });
 
-        if (!reaction) {
+        console.log(reaction);
+        /*if (!reaction) {
             reaction = await db.PostReaction.create({
-                postId,
-                isUpvote,
-                userId: user.id,
-            });
-        }
+                    postId: parseInt(postId),
+                    isUpvote,
+                    userId: user.id,
+                });
+        } else {
+            reaction.isUpvote = isUpvote;
+            reaction.save();
+        }*/
 
         return reaction;
     } catch (e) {
-        console.error('Error:', e.message);
-        return {
-            error: 'Something went wrong',
-        };
+        throw new Error(e.message);
     }
 };
 
@@ -56,9 +57,11 @@ const updateCommentReaction = async (args, context) => {
         }
 
         let reaction = await db.CommentReaction.findOne({
-            commentId,
-            isUpvote,
-            userId: user.id,
+            where: {
+                commentId,
+                isUpvote,
+                userId: user.id,
+            },
         });
 
         if (!reaction) {
@@ -67,6 +70,8 @@ const updateCommentReaction = async (args, context) => {
                 isUpvote,
                 userId: user.id,
             });
+        } else {
+            reaction.update({ isUpvote });
         }
 
         return reaction;
@@ -76,4 +81,9 @@ const updateCommentReaction = async (args, context) => {
             error: 'Something went wrong',
         };
     }
+};
+
+module.exports = {
+    updateCommentReaction,
+    updatePostReaction,
 };

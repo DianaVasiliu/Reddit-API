@@ -7,7 +7,7 @@ const createCommentInputType = new GraphQLInputObjectType({
             type: new GraphQLNonNull(GraphQLID),
         },
         replyToCommentId: {
-            type: new GraphQLNonNull(GraphQLID),
+            type: GraphQLID,
         },
         body: {
             type: new GraphQLNonNull(GraphQLString),
@@ -15,4 +15,4 @@ const createCommentInputType = new GraphQLInputObjectType({
     },
 });
 
-module.exports = createCommunityInputType;
+module.exports = createCommentInputType;
