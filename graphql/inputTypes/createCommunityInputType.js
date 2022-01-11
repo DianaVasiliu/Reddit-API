@@ -3,9 +3,6 @@ const { GraphQLInputObjectType, GraphQLNonNull, GraphQLString, GraphQLID } = req
 const createCommunityInputType = new GraphQLInputObjectType({
   name: 'CreateCommunityInput',
   fields: {
-    communityId: {
-      type: new GraphQLNonNull(GraphQLID),
-    },
     name: {
       type: new GraphQLNonNull(GraphQLString),
     },

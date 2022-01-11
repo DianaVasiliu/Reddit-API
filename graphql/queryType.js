@@ -8,12 +8,11 @@ const {
 const userType = require('./types/userType');
 const postType = require('./types/postType');
 const communityType = require('./types/communityType');
-const reactionType = require('./types/reactionType');
+const commentType = require('./types/commentType');
 
 const {
   getAllUsers,
   getUserById,
-  getUserReactions,
 } = require('../repository/users');
 const {
   getAllPosts,
@@ -22,6 +21,11 @@ const {
 const {
   getAllCommunities, getCommunity
 } = require('../repository/communities');
+const {
+  getCommentThread
+} = require('../repository/comments');
+const messageType = require('./types/messageType');
+const { getUserMessages, getUserChats } = require('../repository/messages');
 
 
 const queryType = new GraphQLObjectType({
@@ -44,19 +48,6 @@ const queryType = new GraphQLObjectType({
         id
       }, context) => {
         return getUserById(id);
-      }
-    },
-    reactions: {
-      type: new GraphQLList(reactionType),
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLID),
-        }
-      },
-      resolve: async (source, {
-        id
-      }) => {
-        return await getUserReactions(id);
       }
     },
     posts: {
@@ -96,6 +87,34 @@ const queryType = new GraphQLObjectType({
       }, context) => {
         return await getCommunity(id);
       }
+    },
+    thread: {
+      type: new GraphQLList(commentType),
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, { id }, context) => {
+        return await getCommentThread(id);
+      }
+    },
+    messages: {
+      type: new GraphQLList(messageType),
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, { id }, context) => {
+        return await getUserMessages(id, context);
+      }    
+    },
+    chats: {
+      type: new GraphQLList(userType),
+      resolve: async (source, args, context) => {
+        return await getUserChats(context);
+      }    
     },
   }
 });

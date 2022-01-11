@@ -1,14 +1,22 @@
-'use strict'
-const { Model } = require('sequelize')
+'use strict';
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class CommentReaction extends Model {
         static associate(models) {
-            models.CommentReaction.belongsTo(models.User)
-            models.CommentReaction.belongsTo(models.Comment)
+            models.CommentReaction.belongsTo(models.User, {
+                foreignKey: 'userId',
+            });
+            models.CommentReaction.belongsTo(models.Comment, {
+                foreignKey: 'commentId',
+            });
         }
     }
     CommentReaction.init(
         {
+            id: {
+                type: DataTypes.TINYINT,
+                primaryKey: true,
+            },
             isUpvote: DataTypes.TINYINT,
         },
         {
@@ -17,6 +25,6 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'CommentReaction',
             timestamps: false,
         }
-    )
-    return CommentReaction
-}
+    );
+    return CommentReaction;
+};

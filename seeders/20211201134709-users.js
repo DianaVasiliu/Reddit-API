@@ -4,7 +4,7 @@ const faker = require('faker')
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        const users = []
+        const users = [];
         for (let i = 0; i < 100; i++) {
             users.push({
                 email: faker.internet.email(),
@@ -12,10 +12,10 @@ module.exports = {
                 password: faker.internet.password(),
                 createdAt: new Date(),
                 updatedAt: new Date(),
-            })
+            });
         }
 
-        await queryInterface.bulkInsert('Users', users)
+        await queryInterface.bulkInsert('Users', users);
     },
 
     down: async (queryInterface, Sequelize) => {

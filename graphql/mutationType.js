@@ -1,5 +1,7 @@
 const {
-  GraphQLObjectType
+  GraphQLObjectType,
+  GraphQLNonNull,
+  GraphQLID,
 } = require('graphql');
 
 const loginInputType = require('./inputTypes/loginInputType');
@@ -9,10 +11,11 @@ const createCommunityInputType = require('./inputTypes/createCommunityInputType'
 const updateUserInputType = require('./inputTypes/updateUserInputType');
 const updatePostInputType = require('./inputTypes/updatePostInputType');
 const updateCommunityInputType = require('./inputTypes/updateCommunityInputType');
-const updateSubscriptionInputType = require('./inputTypes/updateSubscriptionInputType');
 const toggleAdminOrModeratorInputType = require('./inputTypes/toggleAdminOrModeratorInputType');
-const updateReactionInputType = require('./inputTypes/updateReactionInputType');
 const createMessageInputType = require('./inputTypes/createMessageInputType');
+const createCommentInputType = require('./inputTypes/createCommentInputType');
+const updateCommentInputType = require('./inputTypes/updateCommentInputType');
+
 
 const loginResultType = require('./types/loginResultType');
 const userType = require('./types/userType');
@@ -20,7 +23,6 @@ const postType = require('./types/postType');
 const communityType = require('./types/communityType');
 const userCommunityType = require('./types/userCommunityType');
 const updateSubscriptionResultType = require('./types/updateSubscriptionResultType');
-const updateReactionResultType = require('./types/updateReactionResultType');
 const messageType = require('./types/messageType');
 
 const loginHandler = require('../repository/login');
@@ -30,19 +32,30 @@ const {
   deleteUser,
   updateSubscription,
   toggleAdminOrModerator,
-  updateReaction,
 } = require('../repository/users');
 const {
   createPost,
   updatePost,
+  deletePost,
 } = require('../repository/posts');
 const {
   createCommunity, 
   updateCommunity,
+  deleteCommunity,
 } = require('../repository/communities');
 const {
   createMessage,
 } = require('../repository/messages');
+const {
+  updateCommentReaction,
+  updatePostReaction
+} = require('../repository/reactions');
+const commentType = require('./types/commentType');
+const { postNewComment, updateComment, deleteComment } = require('../repository/comments');
+const commentReactionType = require('./types/commentReactionType');
+const postReactionType = require('./types/postReactionType');
+const updatePostReactionInputType = require('./inputTypes/updatePostReactionInputType');
+const updateCommentReactionInputType = require('./inputTypes/updateCommentReactionType');
 
 const mutationType = new GraphQLObjectType({
   name: 'Mutation',
@@ -104,14 +117,14 @@ const mutationType = new GraphQLObjectType({
     updateSubscription: {
       type: updateSubscriptionResultType,
       args: {
-        updateSubscriptionInput: {
-          type: updateSubscriptionInputType,
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
         },
       },
       resolve: async (_, {
-        updateSubscriptionInput
+        id
       }, context) => {
-        return updateSubscription(updateSubscriptionInput, context);
+        return updateSubscription(id, context);
       }
     },
     toggleAdminOrModerator: {
@@ -125,19 +138,6 @@ const mutationType = new GraphQLObjectType({
         toggleAdminOrModeratorInput
       }, context) => {
         return toggleAdminOrModerator(toggleAdminOrModeratorInput, context);
-      }
-    },
-    updateReaction: {
-      type: updateReactionResultType,
-      args: {
-        updateReactionInput: {
-          type: updateReactionInputType,
-        },
-      },
-      resolve: async (_, {
-        updateReactionInput
-      }, context) => {
-        return updateReaction(updateReactionInput, context);
       }
     },
     createPost: {
@@ -166,6 +166,58 @@ const mutationType = new GraphQLObjectType({
         return updatePost(updatePostInput, context);
       }
     },
+    deletePost: {
+      type: postType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, {
+        id
+      }, context) => {
+        return deletePost(id, context);
+      }
+    },
+    createComment: {
+      type: commentType,
+      args: {
+        createCommentInput: {
+          type: createCommentInputType
+        },
+      },
+      resolve: async (_, {
+        createCommentInput
+      }, context) => {
+        return postNewComment(createCommentInput, context);
+      }
+    },
+    updateComment: {
+      type: commentType,
+      args: {
+        updateCommentInput: {
+          type: updateCommentInputType
+        },
+      },
+      resolve: async (_, {
+        updateCommentInput
+      }, context) => {
+        return updateComment(updateCommentInput, context);
+      }
+    },
+    deleteComment: {
+      type: commentType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, {
+        id
+      }, context) => {
+        return deleteComment(id, context);
+      }
+    },
     createCommunity: {
       type: communityType,
       args: {
@@ -192,6 +244,19 @@ const mutationType = new GraphQLObjectType({
         return updateCommunity(updateCommunityInput, context);
       }
     },
+    deleteCommunity: {
+      type: communityType,
+      args: {
+        id: {
+          type: new GraphQLNonNull(GraphQLID),
+        }
+      },
+      resolve: async (source, {
+        id
+      }, context) => {
+        return deleteCommunity(id, context);
+      }
+    },
     createMessage: {
       type: messageType,
       args: {
@@ -204,7 +269,33 @@ const mutationType = new GraphQLObjectType({
       }, context) => {
         return createMessage(createMessageInput, context);
       }
-    }
+    },
+    updatePostReaction: {
+      type: postReactionType,
+      args: {
+        updatePostReactionInput: {
+          type: updatePostReactionInputType
+        }
+      },
+      resolve: async (_, {
+        updatePostReactionInput
+      }, context) => {
+        return updatePostReaction(updatePostReactionInput, context);
+      }
+    },
+    updateCommentReaction: {
+      type: commentReactionType,
+      args: {
+        commentReactionInput: {
+          type: updateCommentReactionInputType
+        }
+      },
+      resolve: async (_, {
+        commentReactionInput
+      }, context) => {
+        return updateCommentReaction(commentReactionInput, context);
+      }
+    },
   },
 })
 

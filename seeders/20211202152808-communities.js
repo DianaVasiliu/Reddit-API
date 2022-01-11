@@ -5,29 +5,30 @@ const db = require('../models')
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
-        const communities = []
-        const usercommunities = []
-        const users = await db.User.findAll()
+        const communities = [];
+        const usercommunities = [];
+        const users = await db.User.findAll();
 
         for (let i = 0; i < 100; i++) {
-            let name = faker.lorem.slug().replaceAll('-', ' ')
-            let userId = Math.floor(Math.random() * (users.length - 1)) + 1
+            let name = faker.lorem.slug().replaceAll('-', ' ');
+            let userIndex = Math.floor(Math.random() * (users.length - 1));
 
             communities.push({
                 id: i + 1,
                 name: name.charAt(0).toUpperCase() + name.slice(1),
                 description: faker.lorem.sentences(),
-                userId,
+                userId: users[userIndex].id,
                 createdAt: new Date(),
                 updatedAt: new Date(),
-            })
+            });
 
+            let role = Math.random();
             usercommunities.push({
-                userId,
+                userId: users[userIndex].id,
                 communityId: i + 1,
-                isAdmin: 1,
-                isModerator: 1,
-            })
+                isAdmin: (role < 0.33),
+                isModerator: (role > 0.66),
+            });
         }
 
         await queryInterface.bulkInsert('Communities', communities)

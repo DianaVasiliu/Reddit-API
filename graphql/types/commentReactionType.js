@@ -3,6 +3,8 @@ const {
     GraphQLID,
     GraphQLBoolean,
   } = require('graphql');
+const commentType = require('./commentType');
+const userType = require('./userType');
   
   const commentReactionType = new GraphQLObjectType({
     name: 'CommentReaction',
@@ -10,11 +12,17 @@ const {
       id: {
         type: GraphQLID,
       },
-      userId: {
-        type: GraphQLID,
+      user: {
+        type: userType,
+        resolve: async (source) => {
+          return await source.getUser();
+        }
       },
-      commentId: {
-        type: GraphQLID,
+      comment: {
+        type: commentType,
+        resolve: async (source) => {
+          return await source.getComment();
+        }
       },
       isUpvote: {
         type: GraphQLBoolean,

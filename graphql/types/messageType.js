@@ -3,6 +3,8 @@ const {
     GraphQLID,
     GraphQLString,
   } = require('graphql');
+const db = require('../../models');
+const userType = require('./userType');
   
   const messageType = new GraphQLObjectType({
     name: 'Message',
@@ -10,11 +12,17 @@ const {
       id: {
         type: GraphQLID,
       },
-      userId: {
-        type: GraphQLID,
+      author: {
+        type: userType,
+        resolve: async (source) => {
+          return await db.User.findByPk(source.userId);
+        }
       },
-      toId: {
-        type: GraphQLID,
+      receiver: {
+        type: userType,
+        resolve: async (source) => {
+          return await db.User.findByPk(source.toId);
+        }
       },
       text: {
         type: GraphQLString,
