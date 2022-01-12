@@ -41,23 +41,23 @@ const createUser = async (args) => {
 }
 
 const updateUser = async (args, context) => {
-    const { user } = context;
+    const { user } = context
 
     if (!user) {
         console.log(
             'Tried to update current user without being logged in. (without having a token in Authorization header)\n'
-        );
-        return null;
+        )
+        return null
     }
 
-    const { id } = user;
-    const { email, username, password } = args;
+    const { id } = user
+    const { email, username, password } = args
 
     try {
-        const userInDB = await db.User.findByPk(id);
+        const userInDB = await db.User.findByPk(id)
 
         if (!userInDB) {
-            throw new Error('User not found');
+            throw new Error('User not found')
         }
 
         await db.User.update(
@@ -72,114 +72,114 @@ const updateUser = async (args, context) => {
                     id,
                 },
             }
-        );
+        )
 
-        return await db.User.findByPk(id);
+        return await db.User.findByPk(id)
     } catch (e) {
-        console.error(e);
-        return null;
+        console.error(e)
+        return null
     }
-};
+}
 
 const deleteUser = async (context) => {
-    const { user } = context;
+    const { user } = context
 
     if (!user) {
         console.log(
             'Tried to delete user without being logged in. (without having a token in Authorization header)\n'
-        );
-        return null;
+        )
+        return null
     }
 
-    const { id } = user;
+    const { id } = user
 
     try {
-        const userInDb = await db.User.findByPk(id);
+        const userInDb = await db.User.findByPk(id)
 
         if (!userInDb) {
-            throw new Error('User not found');
+            throw new Error('User not found')
         }
 
         await db.User.destroy({
             where: {
                 id,
             },
-        });
-        return { userInDb };
+        })
+        return { userInDb }
     } catch (e) {
-        console.error(e);
-        return null;
+        console.error(e)
+        return null
     }
-};
+}
 
 const updateSubscription = async (communityId, context) => {
-    const { user } = context;
+    const { user } = context
 
     if (!user) {
         console.log(
             'Tried to update subscriptions of current user without being logged in. (without having a token in Authorization header)\n'
-        );
-        return null;
+        )
+        return null
     }
 
     try {
-        const community = await db.Community.findByPk(communityId);
+        const community = await db.Community.findByPk(communityId)
 
         if (!community) {
-            throw new Error('Community not found');
+            throw new Error('Community not found')
         }
 
-        const userIsSubscribed = await user.hasCommunity(community);
+        const userIsSubscribed = await user.hasCommunity(community)
 
         if (userIsSubscribed) {
-            await user.removeCommunity(community);
+            await user.removeCommunity(community)
         } else {
-            await user.setCommunities(community);
+            await user.setCommunities(community)
         }
 
-        const subscriptions = await user.getCommunities();
+        const subscriptions = await user.getCommunities()
 
         return {
             user,
             subscriptions,
-        };
+        }
     } catch (e) {
-        console.error('Error:', e.message);
+        console.error('Error:', e.message)
         return {
             error: 'Something went wrong',
-        };
+        }
     }
-};
+}
 
 const toggleAdminOrModerator = async (args, context) => {
-    const { communityId, userId, option } = args;
+    const { communityId, userId, option } = args
     const criteria = {
         userId,
         communityId,
-    };
-    const { user } = context;
+    }
+    const { user } = context
 
     if (!user) {
         console.log(
             'Tried to toggle privilege of user without being logged in. (without having a token in Authorization header)\n'
-        );
-        return null;
+        )
+        return null
     }
 
     try {
         if (option !== 'admin' && option !== 'moderator') {
-            throw new Error('Invalid option');
+            throw new Error('Invalid option')
         }
 
         // check if the user we want to update is a member of the community
         const userCommunity = await db.UserCommunity.findOne({
             where: criteria,
-        });
+        })
 
         if (!userCommunity) {
             throw new Error(
                 'The required user/community does not exist or is not a member of the community'
-            );
+            )
         }
 
         // check if we want to remove the only admin
@@ -193,10 +193,10 @@ const toggleAdminOrModerator = async (args, context) => {
                         id: communityId,
                         userId,
                     },
-                });
+                })
 
                 if (creator) {
-                    throw new Error('Cannot remove the creator as admin');
+                    throw new Error('Cannot remove the creator as admin')
                 }
 
                 // check if he is the only admin of the community
@@ -205,11 +205,11 @@ const toggleAdminOrModerator = async (args, context) => {
                         communityId,
                         isAdmin: 1,
                     },
-                });
+                })
 
                 // if we only have one admin, we cannot remove it
                 if (users.length <= 1) {
-                    throw new Error('Cannot own community without admin');
+                    throw new Error('Cannot own community without admin')
                 } else {
                     await db.UserCommunity.update(
                         {
@@ -218,7 +218,7 @@ const toggleAdminOrModerator = async (args, context) => {
                         {
                             where: criteria,
                         }
-                    );
+                    )
                 }
             } else {
                 await db.UserCommunity.update(
@@ -229,13 +229,13 @@ const toggleAdminOrModerator = async (args, context) => {
                     {
                         where: criteria,
                     }
-                );
+                )
             }
         } else {
             if (userCommunity.isAdmin === 1) {
                 throw new Error(
                     'Cannot update moderator role for someone who is also an admin'
-                );
+                )
             }
 
             await db.UserCommunity.update(
@@ -245,20 +245,18 @@ const toggleAdminOrModerator = async (args, context) => {
                 {
                     where: criteria,
                 }
-            );
+            )
         }
 
-        return userCommunity;
+        return userCommunity
     } catch (e) {
-        console.error('Error:', e.message);
-        return {
-            error: 'Something went wrong',
-        };
+        console.error('Error:', e.message)
+        throw new Error(e.message)
     }
-};
+}
 
 const getUserReactions = async (id) => {
-    const userId  = id
+    const userId = id
 
     try {
         const user = await db.User.findByPk(userId)
@@ -290,16 +288,12 @@ const getUserReactions = async (id) => {
         return posts
     } catch (e) {
         console.error('Error:', e.message)
-        return { 'error': 'Something went wrong' }
+        return { error: 'Something went wrong' }
     }
 }
 
 const updateReaction = async (args, context) => {
-    const { userId, 
-            isUpvote,
-            postId,
-            commentId, 
-            option, } = args
+    const { userId, isUpvote, postId, commentId, option } = args
     var criteria = {
         userId,
         postId,
@@ -311,13 +305,10 @@ const updateReaction = async (args, context) => {
             'Tried to update a reaction without being logged in. (without having a token in Authorization header)\n'
         )
         return null
-    }
-    else {
-        const { id } = user.toJSON();
+    } else {
+        const { id } = user.toJSON()
         if (id != userId) {
-            console.log(
-                'Tried to update reaction of another user\n'
-            )
+            console.log('Tried to update reaction of another user\n')
             return null
         }
     }
